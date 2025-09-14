@@ -1,0 +1,280 @@
+# Virtual Environments
+ml_portfolio/
+venv/
+env/
+ENV/
+.venv/
+.ENV/
+*.virtualenv
+ml_env/
+mlenv/
+aivenv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.manifest
+*.spec
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# IPython
+profile_default/
+ipython_config.py
+
+# Data files (usually too large for git)
+data/
+*.csv
+*.tsv
+*.json
+*.txt
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.npy
+*.npz
+*.tar
+*.tar.gz
+*.zip
+*.gz
+
+# Model files
+*.pth
+*.pt
+*.ckpt
+*.pb
+*.onnx
+*.keras
+*.h5
+*.model
+*.safetensors
+checkpoints/
+saved_models/
+models/
+weights/
+
+# Logs
+logs/
+*.log
+runs/
+tensorboard/
+wandb/
+mlruns/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache
+.cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+cython_debug/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+
+# Output files
+output/
+outputs/
+results/
+predictions/
+submissions/
+
+# Documentation builds
+docs/_build/
+docs/.doctrees/
+site/
+
+# Package managers
+poetry.lock
+Pipfile.lock
+
+# OS generated files
+Thumbs.db
+Desktop.ini
+
+# Specific project folders to ignore
+examples/
+sample_data/
+scratch/
+experiments/
+
+# Large dataset directories (add specific ones as needed)
+CIFAR-10/
+CIFAR-100/
+ImageNet/
+COCO/
+VOC*/
+wikitext*/
+openwebtext/
+
+# Gradio/Streamlit
+flagged/
+*.gradio/
+
+# PyTorch specific
+*.pth.tar
+
+# TensorFlow specific
+*.tfrecord
+*.tflite
+
+# Hugging Face
+.huggingface/
+transformers_cache/
+huggingface_hub/
+
+# MLflow
+mlruns/
+mlflow.db
+
+# DVC
+.dvc/
+.dvcignore
+
+# Hydra
+outputs/
+multirun/
+.hydra/
+
+# Ray
+ray_results/
+ray_session*/
+
+# Neptune
+.neptune/
+
+# Comet
+.comet/
+
+# W&B
+wandb/
+artifacts/
+
+# Optuna
+optuna.db
+optuna-journal.log
+
+# Sacred
+.sacred/
+sacred_runs/
+
+# Kubeflow
+.kubeflow/
+
+# Airflow
+airflow.db
+airflow.cfg
+unittests.cfg
+
+# Docker
+*.dockerfile.swp
+docker-compose.override.yml
+
+# Kubernetes
+*.kubeconfig
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Ignore any personal notes or todo files
+TODO.md
+NOTES.md
+notes.txt
+todo.txt
+
+# Ignore sensitive information
+secrets/
+credentials/
+*.key
+*.pem
+*.p12
+*.pfx
