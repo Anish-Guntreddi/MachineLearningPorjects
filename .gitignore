@@ -278,3 +278,7 @@ credentials/
 *.pem
 *.p12
 *.pfx
+
+# Claude configuration
+.claude
+CLAUDE.md
