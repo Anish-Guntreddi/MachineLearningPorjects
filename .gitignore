@@ -282,3 +282,5 @@ credentials/
 # Claude configuration
 .claude
 CLAUDE.md
+ENVIRONMENT_SETUP.md
+IMPLEMENTATION_PLAN.md
