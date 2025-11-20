@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # Backend service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ml-portfolio-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount project directories for model access
+      - ../01_Image_Classification:/app/models/01_Image_Classification:ro
+      - ../02_Object_Detection:/app/models/02_Object_Detection:ro
+      - ../03_Instance_Segmentation:/app/models/03_Instance_Segmentation:ro
+      - ../04_Text_Classification:/app/models/04_Text_Classification:ro
+      - ../05_Text_Generation:/app/models/05_Text_Generation:ro
+      - ../06_Machine_Translation:/app/models/06_Machine_Translation:ro
+      - ../07_Speech_Emotion_Recognition:/app/models/07_Speech_Emotion_Recognition:ro
+      - ../08_Automatic_Speech_Recognition:/app/models/08_Automatic_Speech_Recognition:ro
+      - ../09_Recommender_System:/app/models/09_Recommender_System:ro
+      - ../10_Time_Series_Forecasting:/app/models/10_Time_Series_Forecasting:ro
+      - ../11_Anomaly_Detection:/app/models/11_Anomaly_Detection:ro
+      - ../12_Multimodal_Fusion:/app/models/12_Multimodal_Fusion:ro
+      # Mount backend code for development (remove in production)
+      - ./backend:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ENVIRONMENT=development
+    restart: unless-stopped
+    networks:
+      - ml-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ml-portfolio-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - ml-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  ml-network:
+    driver: bridge
+
+volumes:
+  model_data:
+    driver: local
