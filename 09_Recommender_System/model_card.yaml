@@ -1,0 +1,22 @@
+project_id: 09
+title: Recommender System
+short_description: Collaborative filtering on MovieLens 100K
+category: Recommender
+input_type: tabular
+output_type: recommendations
+default_model: ncf
+models_available:
+- matrix_factorization
+- ncf
+- deepfm
+dataset:
+  name: MovieLens 100K
+  source: surprise
+  num_classes: 0
+  train_size: 80000
+  test_size: 20000
+tags:
+- recommender
+- collaborative-filtering
+- movielens
+demo_type: interactive

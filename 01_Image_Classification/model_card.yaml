@@ -1,0 +1,35 @@
+project_id: '01'
+title: Image Classification
+short_description: CNN-based image classifier trained on CIFAR-10
+category: Computer Vision
+input_type: image
+output_type: class_label
+default_model: resnet18
+models_available:
+- simple_cnn
+- resnet18
+- resnet50
+- efficientnet_b0
+- vit_tiny_patch16_224
+dataset:
+  name: CIFAR-10
+  source: torchvision
+  num_classes: 10
+  class_names:
+  - airplane
+  - automobile
+  - bird
+  - cat
+  - deer
+  - dog
+  - frog
+  - horse
+  - ship
+  - truck
+  train_size: 45000
+  test_size: 10000
+tags:
+- cnn
+- cifar-10
+- image-classification
+demo_type: interactive

@@ -1,0 +1,38 @@
+project_num: 6
+project_name: "Machine Translation"
+project_dir: "06_Machine_Translation"
+domain: "nlp"
+description: "Seq2seq translation models"
+category: "NLP"
+input_type: "text"
+output_type: "translated_text"
+demo_type: "precomputed"
+
+model:
+  factory_import: "from models import get_model"
+  factory_call: "get_model('transformer', src_vocab_size=config.get('src_vocab_size', 32000), tgt_vocab_size=config.get('tgt_vocab_size', 32000))"
+  default_model: "transformer"
+  models_available: [transformer, lstm, marian]
+
+data:
+  has_data_loader: true
+  loader_import: "from data_loader import create_data_loaders"
+  loader_call: "train_loader, val_loader, test_loader = create_data_loaders(dataset_name='synthetic', batch_size=config['batch_size'], num_workers=platform_config['num_workers'])"
+  dataset_name: "Multi30k"
+  num_classes: 0
+  train_size: 29000
+  test_size: 1000
+
+training:
+  has_train_py: true
+  trainer_import: "from train import TranslationTrainer"
+  trainer_class: "TranslationTrainer"
+  epochs: 5
+  batch_size: 32
+  learning_rate: 1e-4
+
+evaluation:
+  metrics: [bleu, loss]
+  primary_metric: "bleu"
+
+tags: [machine-translation, seq2seq, transformer]

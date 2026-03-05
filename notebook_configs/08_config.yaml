@@ -1,0 +1,38 @@
+project_num: 8
+project_name: "Automatic Speech Recognition"
+project_dir: "08_Automatic_Speech_Recognition"
+domain: "audio"
+description: "Speech-to-text systems"
+category: "Audio"
+input_type: "audio"
+output_type: "transcribed_text"
+demo_type: "precomputed"
+
+model:
+  factory_import: "from models import get_model"
+  factory_call: "get_model(config['model_name'], input_dim=80, num_classes=config.get('num_classes', 29))"
+  default_model: "deepspeech2"
+  models_available: [deepspeech2, wav2vec2, whisper]
+
+data:
+  has_data_loader: true
+  loader_import: "from data_loader import create_data_loaders"
+  loader_call: "train_loader, val_loader, test_loader = create_data_loaders(batch_size=config['batch_size'], num_workers=platform_config['num_workers'])"
+  dataset_name: "LibriSpeech"
+  num_classes: 29
+  train_size: 28539
+  test_size: 2620
+
+training:
+  has_train_py: true
+  trainer_import: "from train import ASRTrainer"
+  trainer_class: "ASRTrainer"
+  epochs: 5
+  batch_size: 16
+  learning_rate: 0.0003
+
+evaluation:
+  metrics: [wer, cer]
+  primary_metric: "wer"
+
+tags: [speech-recognition, asr, librispeech]

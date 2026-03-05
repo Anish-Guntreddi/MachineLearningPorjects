@@ -1,0 +1,22 @@
+project_id: '10'
+title: Time Series Forecasting
+short_description: LSTM/Transformer forecasting on ETTh1
+category: Time Series
+input_type: tabular
+output_type: forecast
+default_model: lstm
+models_available:
+- lstm
+- gru
+- transformer
+dataset:
+  name: ETTh1
+  source: custom
+  num_classes: 0
+  train_size: 8545
+  test_size: 2881
+tags:
+- time-series
+- forecasting
+- lstm
+demo_type: interactive

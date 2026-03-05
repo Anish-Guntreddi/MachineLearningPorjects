@@ -1,0 +1,38 @@
+project_num: 5
+project_name: "Text Generation"
+project_dir: "05_Text_Generation"
+domain: "nlp"
+description: "GPT-style text generation"
+category: "NLP"
+input_type: "text"
+output_type: "generated_text"
+demo_type: "interactive"
+
+model:
+  factory_import: "from models import get_model"
+  factory_call: "get_model('gpt2')"
+  default_model: "gpt2"
+  models_available: [gpt2, gpt2-medium, transformer, lstm]
+
+data:
+  has_data_loader: true
+  loader_import: "from data_loader import create_data_loaders"
+  loader_call: "train_loader, val_loader, test_loader = create_data_loaders(dataset_name='wikitext', batch_size=config['batch_size'], num_workers=platform_config['num_workers'])"
+  dataset_name: "WikiText"
+  num_classes: 0
+  train_size: 28475
+  test_size: 4358
+
+training:
+  has_train_py: true
+  trainer_import: "from train import TextGenerationTrainer"
+  trainer_class: "TextGenerationTrainer"
+  epochs: 3
+  batch_size: 8
+  learning_rate: 5e-5
+
+evaluation:
+  metrics: [perplexity]
+  primary_metric: "perplexity"
+
+tags: [text-generation, gpt2, language-model]

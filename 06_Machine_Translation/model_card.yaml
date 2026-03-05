@@ -1,0 +1,22 @@
+project_id: '06'
+title: Machine Translation
+short_description: Seq2seq translation with Transformer on Multi30k
+category: NLP
+input_type: text
+output_type: translated_text
+default_model: transformer
+models_available:
+- transformer
+- lstm
+- marian
+dataset:
+  name: Multi30k
+  source: HuggingFace
+  num_classes: 0
+  train_size: 29000
+  test_size: 1000
+tags:
+- machine-translation
+- seq2seq
+- transformer
+demo_type: precomputed

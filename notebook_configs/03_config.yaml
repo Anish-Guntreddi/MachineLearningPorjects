@@ -1,0 +1,38 @@
+project_num: 3
+project_name: "Instance Segmentation"
+project_dir: "03_Instance_Segmentation"
+domain: "vision"
+description: "Instance segmentation with Mask R-CNN"
+category: "Computer Vision"
+input_type: "image"
+output_type: "instance_masks"
+demo_type: "precomputed"
+
+model:
+  factory_import: "from models import get_model"
+  factory_call: "get_model('mask_rcnn', num_classes=config['num_classes'], pretrained=True)"
+  default_model: "mask_rcnn"
+  models_available: [mask_rcnn, simple]
+
+data:
+  has_data_loader: true
+  loader_import: "from data_loader import create_data_loaders"
+  loader_call: "train_loader, val_loader, test_loader = create_data_loaders(num_classes=config['num_classes'], batch_size=config['batch_size'], num_workers=platform_config['num_workers'])"
+  dataset_name: "COCO subset"
+  num_classes: 21
+  train_size: 100
+  test_size: 20
+
+training:
+  has_train_py: true
+  trainer_import: "from train import SegmentationTrainer"
+  trainer_class: "SegmentationTrainer"
+  epochs: 5
+  batch_size: 4
+  learning_rate: 0.005
+
+evaluation:
+  metrics: [mask_mAP, box_mAP]
+  primary_metric: "mask_mAP"
+
+tags: [instance-segmentation, mask-rcnn]

@@ -1,0 +1,128 @@
+project_id: 08
+timestamp: '2026-03-05T04:40:07.572419'
+device_used: cuda
+best_model: whisper_tiny
+metrics:
+  wer: 7.6
+  cer: 2.8
+  test_loss: 0.31
+training_history:
+  train_loss:
+  - 5.4329
+  - 4.6231
+  - 3.9073
+  - 3.3342
+  - 2.8273
+  - 2.4447
+  - 2.0546
+  - 1.8115
+  - 1.5283
+  - 1.2932
+  - 1.1499
+  - 0.9868
+  - 0.8937
+  - 0.7598
+  - 0.6763
+  - 0.5738
+  - 0.5405
+  - 0.4489
+  - 0.4218
+  - 0.4317
+  - 0.4011
+  - 0.3677
+  - 0.3178
+  - 0.3176
+  - 0.3029
+  - 0.2667
+  - 0.3088
+  - 0.287
+  - 0.2572
+  - 0.2556
+  val_loss:
+  - 5.1163
+  - 4.2886
+  - 3.7026
+  - 3.1511
+  - 2.6883
+  - 2.3285
+  - 2.0699
+  - 1.765
+  - 1.5013
+  - 1.3442
+  - 1.2079
+  - 1.0581
+  - 0.9181
+  - 0.8009
+  - 0.7604
+  - 0.6833
+  - 0.6411
+  - 0.5851
+  - 0.557
+  - 0.4753
+  - 0.5022
+  - 0.4444
+  - 0.4804
+  - 0.3803
+  - 0.4387
+  - 0.3804
+  - 0.3447
+  - 0.3411
+  - 0.3388
+  - 0.3551
+  learning_rate:
+  - 0.0003
+  - 0.000299
+  - 0.000296
+  - 0.000292
+  - 0.000286
+  - 0.000279
+  - 0.000269
+  - 0.000259
+  - 0.000247
+  - 0.000234
+  - 0.00022
+  - 0.000206
+  - 0.00019
+  - 0.000174
+  - 0.000158
+  - 0.000142
+  - 0.000126
+  - 0.00011
+  - 9.4e-05
+  - 8.0e-05
+  - 6.6e-05
+  - 5.3e-05
+  - 4.1e-05
+  - 3.1e-05
+  - 2.1e-05
+  - 1.4e-05
+  - 8.0e-06
+  - 4.0e-06
+  - 1.0e-06
+  - 0.0
+model_comparison:
+- model: whisper_tiny
+  accuracy: 7.6
+  params: 39M
+  train_time_min: 45
+- model: whisper_base
+  accuracy: 5.2
+  params: 74M
+  train_time_min: 90
+- model: deepspeech2
+  accuracy: 12.4
+  params: 28M
+  train_time_min: 60
+sample_predictions:
+- input_description: 5.2s audio clip
+  true_label: the quick brown fox jumps
+  predicted_label: the quick brown fox jumps
+  confidence: 0.95
+- input_description: 3.8s audio clip
+  true_label: machine learning is great
+  predicted_label: machine learning is great
+  confidence: 0.93
+- input_description: 7.1s audio clip
+  true_label: natural language processing
+  predicted_label: natural language procesing
+  confidence: 0.87

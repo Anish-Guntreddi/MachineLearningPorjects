@@ -1,0 +1,21 @@
+project_id: '02'
+title: Object Detection
+short_description: Object detection with Faster R-CNN on PASCAL VOC
+category: Computer Vision
+input_type: image
+output_type: bounding_boxes
+default_model: fasterrcnn_resnet50_fpn
+models_available:
+- fasterrcnn_resnet50_fpn
+- retinanet_resnet50_fpn
+dataset:
+  name: PASCAL VOC
+  source: torchvision
+  num_classes: 21
+  train_size: 16551
+  test_size: 4952
+tags:
+- object-detection
+- faster-rcnn
+- voc
+demo_type: interactive

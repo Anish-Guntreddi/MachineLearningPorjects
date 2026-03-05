@@ -1,0 +1,21 @@
+project_id: '03'
+title: Instance Segmentation
+short_description: Instance segmentation with Mask R-CNN on COCO
+category: Computer Vision
+input_type: image
+output_type: instance_masks
+default_model: mask_rcnn
+models_available:
+- mask_rcnn
+- simple
+dataset:
+  name: COCO subset
+  source: torchvision
+  num_classes: 80
+  train_size: 118287
+  test_size: 5000
+tags:
+- instance-segmentation
+- mask-rcnn
+- coco
+demo_type: precomputed

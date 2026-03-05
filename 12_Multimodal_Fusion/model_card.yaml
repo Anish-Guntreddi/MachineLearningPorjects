@@ -1,0 +1,24 @@
+project_id: '12'
+title: Multimodal Fusion
+short_description: Vision, audio, and text multimodal integration
+category: Multimodal
+input_type: multi
+output_type: class_label
+default_model: attention_fusion
+models_available:
+- early_fusion
+- late_fusion
+- attention_fusion
+- transformer_fusion
+- cross_modal_attention
+dataset:
+  name: Custom Multimodal
+  source: custom
+  num_classes: 4
+  train_size: 800
+  test_size: 200
+tags:
+- multimodal
+- fusion
+- attention
+demo_type: precomputed

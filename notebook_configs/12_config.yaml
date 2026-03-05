@@ -1,0 +1,38 @@
+project_num: 12
+project_name: "Multimodal Fusion"
+project_dir: "12_Multimodal_Fusion"
+domain: "multimodal"
+description: "Vision, audio, and text integration"
+category: "Multimodal"
+input_type: "multi"
+output_type: "class_label"
+demo_type: "precomputed"
+
+model:
+  factory_import: "from models import get_fusion_model"
+  factory_call: "get_fusion_model(config['model_name'])"
+  default_model: "attention_fusion"
+  models_available: [early_fusion, late_fusion, attention_fusion, transformer_fusion, cross_modal_attention]
+
+data:
+  has_data_loader: true
+  loader_import: "from data_loader import create_data_loaders"
+  loader_call: "train_loader, val_loader, test_loader = create_data_loaders(batch_size=config['batch_size'], num_workers=platform_config['num_workers'])"
+  dataset_name: "Custom Multimodal"
+  num_classes: 4
+  train_size: 800
+  test_size: 200
+
+training:
+  has_train_py: true
+  trainer_import: "from train import MultimodalTrainer"
+  trainer_class: "MultimodalTrainer"
+  epochs: 10
+  batch_size: 16
+  learning_rate: 0.001
+
+evaluation:
+  metrics: [accuracy, per_modality_ablation]
+  primary_metric: "accuracy"
+
+tags: [multimodal, fusion, attention]

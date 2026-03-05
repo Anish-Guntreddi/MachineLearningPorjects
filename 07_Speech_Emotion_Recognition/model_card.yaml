@@ -1,0 +1,32 @@
+project_id: '07'
+title: Speech Emotion Recognition
+short_description: Audio emotion classification on RAVDESS
+category: Audio
+input_type: audio
+output_type: emotion_label
+default_model: cnn_lstm
+models_available:
+- cnn1d
+- cnn2d
+- lstm
+- cnn_lstm
+dataset:
+  name: RAVDESS
+  source: Kaggle
+  num_classes: 8
+  class_names:
+  - happy
+  - sad
+  - angry
+  - neutral
+  - disgust
+  - fear
+  - surprise
+  - calm
+  train_size: 1152
+  test_size: 288
+tags:
+- speech-emotion
+- audio-classification
+- ravdess
+demo_type: precomputed

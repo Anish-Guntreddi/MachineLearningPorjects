@@ -1,0 +1,23 @@
+project_id: '05'
+title: Text Generation
+short_description: GPT-style text generation on WikiText
+category: NLP
+input_type: text
+output_type: generated_text
+default_model: gpt2
+models_available:
+- gpt2
+- gpt2-medium
+- transformer
+- lstm
+dataset:
+  name: WikiText-103
+  source: HuggingFace
+  num_classes: 0
+  train_size: 28475
+  test_size: 4358
+tags:
+- text-generation
+- gpt2
+- language-model
+demo_type: interactive

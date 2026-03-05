@@ -1,0 +1,38 @@
+project_num: 10
+project_name: "Time Series Forecasting"
+project_dir: "10_Time_Series_Forecasting"
+domain: "tabular"
+description: "LSTM/Transformer time series models"
+category: "Time Series"
+input_type: "tabular"
+output_type: "forecast"
+demo_type: "interactive"
+
+model:
+  factory_import: "from models import get_model"
+  factory_call: "get_model(config['model_name'], input_dim=input_dim, prediction_length=config.get('prediction_length', 12))"
+  default_model: "lstm"
+  models_available: [lstm, gru, transformer]
+
+data:
+  has_data_loader: true
+  loader_import: "from data_loader import TimeSeriesDataModule"
+  loader_call: "data_module = TimeSeriesDataModule(dataset_name='synthetic', data_path='./data', sequence_length=config.get('sequence_length', 24), prediction_length=config.get('prediction_length', 12), batch_size=config['batch_size'], num_workers=platform_config['num_workers'])\ndata_module.setup()\ntrain_loader = data_module.train_dataloader()\nval_loader = data_module.val_dataloader()\ntest_loader = data_module.test_dataloader()\ninput_dim = next(iter(train_loader))['input'].shape[-1]"
+  dataset_name: "Synthetic / ETTh1"
+  num_classes: 0
+  train_size: 8545
+  test_size: 2881
+
+training:
+  has_train_py: true
+  trainer_import: "from train import TimeSeriesTrainer"
+  trainer_class: "TimeSeriesTrainer"
+  epochs: 10
+  batch_size: 32
+  learning_rate: 0.001
+
+evaluation:
+  metrics: [mae, rmse, mape]
+  primary_metric: "mae"
+
+tags: [time-series, forecasting, lstm]

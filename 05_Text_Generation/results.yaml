@@ -1,0 +1,54 @@
+project_id: '05'
+timestamp: '2026-03-05T04:40:07.564217'
+device_used: cuda
+best_model: gpt2
+metrics:
+  test_perplexity: 29.4
+  test_loss: 3.38
+training_history:
+  train_loss:
+  - 12.7003
+  - 8.6502
+  - 6.3313
+  - 4.9914
+  - 4.218
+  - 3.7797
+  - 3.5382
+  - 3.3836
+  - 3.2973
+  - 3.2661
+  val_loss:
+  - 12.1724
+  - 8.4741
+  - 6.1974
+  - 5.0749
+  - 4.371
+  - 3.865
+  - 3.6837
+  - 3.549
+  - 3.4411
+  - 3.416
+  learning_rate:
+  - 5.0e-05
+  - 4.8e-05
+  - 4.4e-05
+  - 3.8e-05
+  - 2.9e-05
+  - 2.1e-05
+  - 1.3e-05
+  - 6.0e-06
+  - 2.0e-06
+  - 0.0
+model_comparison:
+- model: gpt2
+  accuracy: 29.4
+  params: 124M
+  train_time_min: 60
+- model: transformer
+  accuracy: 45.2
+  params: 38M
+  train_time_min: 30
+- model: lstm
+  accuracy: 85.6
+  params: 12M
+  train_time_min: 20

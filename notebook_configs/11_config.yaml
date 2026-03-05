@@ -1,0 +1,39 @@
+project_num: 11
+project_name: "Anomaly Detection"
+project_dir: "11_Anomaly_Detection"
+domain: "tabular"
+description: "Unsupervised anomaly detection"
+category: "Anomaly Detection"
+input_type: "tabular"
+output_type: "anomaly_score"
+demo_type: "interactive"
+
+model:
+  factory_import: "from models import get_model"
+  factory_call: "get_model(config['model_name'], input_dim=config.get('input_dim', 30))"
+  default_model: "autoencoder"
+  models_available: [autoencoder, vae, isolation_forest, deep_svdd]
+
+data:
+  has_data_loader: true
+  loader_import: "from data_loader import create_data_loaders"
+  loader_call: "train_loader, val_loader, test_loader = create_data_loaders(batch_size=config['batch_size'], num_workers=platform_config['num_workers'])"
+  dataset_name: "Synthetic / Credit Card"
+  num_classes: 2
+  class_names: [normal, anomaly]
+  train_size: 3629
+  test_size: 1725
+
+training:
+  has_train_py: true
+  trainer_import: "from train import AnomalyTrainer"
+  trainer_class: "AnomalyTrainer"
+  epochs: 10
+  batch_size: 64
+  learning_rate: 0.001
+
+evaluation:
+  metrics: [auc_roc, f1, precision, recall]
+  primary_metric: "auc_roc"
+
+tags: [anomaly-detection, autoencoder, unsupervised]

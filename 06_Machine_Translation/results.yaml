@@ -1,0 +1,123 @@
+project_id: '06'
+timestamp: '2026-03-05T04:40:07.565944'
+device_used: cuda
+best_model: transformer
+metrics:
+  bleu: 34.2
+  test_loss: 1.85
+training_history:
+  train_loss:
+  - 10.0778
+  - 8.7889
+  - 7.6396
+  - 6.6928
+  - 5.8793
+  - 5.1669
+  - 4.6105
+  - 4.1523
+  - 3.7155
+  - 3.4153
+  - 3.111
+  - 2.8682
+  - 2.6879
+  - 2.5125
+  - 2.3533
+  - 2.2633
+  - 2.1171
+  - 2.0657
+  - 1.9935
+  - 1.915
+  - 1.8768
+  - 1.8025
+  - 1.8099
+  - 1.7574
+  - 1.7252
+  - 1.7351
+  - 1.682
+  - 1.6527
+  - 1.6369
+  - 1.6694
+  val_loss:
+  - 9.6116
+  - 8.4674
+  - 7.3126
+  - 6.551
+  - 5.77
+  - 5.1409
+  - 4.6059
+  - 4.1951
+  - 3.8125
+  - 3.5358
+  - 3.2444
+  - 3.0252
+  - 2.8244
+  - 2.6775
+  - 2.5571
+  - 2.3861
+  - 2.3039
+  - 2.2884
+  - 2.2053
+  - 2.1392
+  - 2.0986
+  - 2.0692
+  - 2.0095
+  - 1.9745
+  - 1.9803
+  - 1.9254
+  - 1.9504
+  - 1.8731
+  - 1.9433
+  - 1.9167
+  learning_rate:
+  - 0.0001
+  - 0.0001
+  - 9.9e-05
+  - 9.7e-05
+  - 9.5e-05
+  - 9.3e-05
+  - 9.0e-05
+  - 8.6e-05
+  - 8.2e-05
+  - 7.8e-05
+  - 7.3e-05
+  - 6.9e-05
+  - 6.3e-05
+  - 5.8e-05
+  - 5.3e-05
+  - 4.7e-05
+  - 4.2e-05
+  - 3.7e-05
+  - 3.1e-05
+  - 2.7e-05
+  - 2.2e-05
+  - 1.8e-05
+  - 1.4e-05
+  - 1.0e-05
+  - 7.0e-06
+  - 5.0e-06
+  - 3.0e-06
+  - 1.0e-06
+  - 0.0
+  - 0.0
+model_comparison:
+- model: transformer
+  accuracy: 34.2
+  params: 65M
+  train_time_min: 90
+- model: lstm
+  accuracy: 28.5
+  params: 32M
+  train_time_min: 60
+sample_predictions:
+- input_description: A dog is running in the park
+  true_label: Ein Hund rennt im Park
+  predicted_label: "Ein Hund l\xE4uft im Park"
+  confidence: 0.82
+- input_description: The cat sits on the mat
+  true_label: Die Katze sitzt auf der Matte
+  predicted_label: Die Katze sitzt auf der Matte
+  confidence: 0.91
+- input_description: Two children are playing
+  true_label: Zwei Kinder spielen
+  predicted_label: Zwei Kinder spielen zusammen
+  confidence: 0.78

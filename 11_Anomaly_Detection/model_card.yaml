@@ -1,0 +1,26 @@
+project_id: '11'
+title: Anomaly Detection
+short_description: Unsupervised anomaly detection with autoencoders
+category: Anomaly Detection
+input_type: tabular
+output_type: anomaly_score
+default_model: vae
+models_available:
+- autoencoder
+- vae
+- isolation_forest
+- deep_svdd
+dataset:
+  name: Synthetic / Credit Card
+  source: custom
+  num_classes: 2
+  class_names:
+  - normal
+  - anomaly
+  train_size: 3629
+  test_size: 1725
+tags:
+- anomaly-detection
+- autoencoder
+- unsupervised
+demo_type: interactive

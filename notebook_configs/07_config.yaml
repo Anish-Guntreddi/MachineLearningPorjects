@@ -1,0 +1,39 @@
+project_num: 7
+project_name: "Speech Emotion Recognition"
+project_dir: "07_Speech_Emotion_Recognition"
+domain: "audio"
+description: "Audio emotion classification"
+category: "Audio"
+input_type: "audio"
+output_type: "emotion_label"
+demo_type: "precomputed"
+
+model:
+  factory_import: "from models import get_model"
+  factory_call: "get_model(config['model_name'], input_dim=40, num_classes=config['num_classes'])"
+  default_model: "cnn1d"
+  models_available: [cnn1d, cnn2d, lstm]
+
+data:
+  has_data_loader: true
+  loader_import: "from data_loader import create_data_loaders"
+  loader_call: "train_loader, val_loader, test_loader = create_data_loaders(batch_size=config['batch_size'], num_workers=platform_config['num_workers'])"
+  dataset_name: "RAVDESS"
+  num_classes: 8
+  class_names: [happy, sad, angry, neutral, disgust, fear, surprise, calm]
+  train_size: 1152
+  test_size: 288
+
+training:
+  has_train_py: true
+  trainer_import: "from train import EmotionTrainer"
+  trainer_class: "EmotionTrainer"
+  epochs: 10
+  batch_size: 32
+  learning_rate: 0.001
+
+evaluation:
+  metrics: [accuracy, f1_macro]
+  primary_metric: "accuracy"
+
+tags: [speech-emotion, audio-classification, ravdess]

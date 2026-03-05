@@ -1,0 +1,39 @@
+project_num: 4
+project_name: "Text Classification"
+project_dir: "04_Text_Classification"
+domain: "nlp"
+description: "Text classification with transformers"
+category: "NLP"
+input_type: "text"
+output_type: "class_label"
+demo_type: "interactive"
+
+model:
+  factory_import: "from models import get_model"
+  factory_call: "get_model('bert', num_classes=config['num_classes'])"
+  default_model: "bert"
+  models_available: [bert, roberta, distilbert, custom_transformer, cnn, lstm]
+
+data:
+  has_data_loader: true
+  loader_import: "from data_loader import load_imdb_dataset"
+  loader_call: "train_loader, val_loader, test_loader = load_imdb_dataset(batch_size=config['batch_size'], num_workers=platform_config['num_workers'])"
+  dataset_name: "IMDB"
+  num_classes: 2
+  class_names: [negative, positive]
+  train_size: 25000
+  test_size: 25000
+
+training:
+  has_train_py: true
+  trainer_import: "from train import TextClassificationTrainer"
+  trainer_class: "TextClassificationTrainer"
+  epochs: 3
+  batch_size: 16
+  learning_rate: 2e-5
+
+evaluation:
+  metrics: [accuracy, f1_macro, auc_roc]
+  primary_metric: "accuracy"
+
+tags: [text-classification, bert, sentiment-analysis]

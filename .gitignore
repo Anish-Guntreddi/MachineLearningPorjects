@@ -284,3 +284,11 @@ credentials/
 CLAUDE.md
 ENVIRONMENT_SETUP.md
 IMPLEMENTATION_PLAN.md
+
+# Portfolio app and notebook exceptions
+!**/model_card.yaml
+!**/results.yaml
+!portfolio_app/requirements.txt
+!portfolio_app/packages.txt
+!notebook_configs/*.yaml
+!portfolio_app/precomputed/**/*.yaml

@@ -1,0 +1,28 @@
+project_id: '04'
+title: Text Classification
+short_description: Sentiment analysis with BERT on IMDB reviews
+category: NLP
+input_type: text
+output_type: class_label
+default_model: bert
+models_available:
+- bert
+- roberta
+- distilbert
+- custom_transformer
+- cnn
+- lstm
+dataset:
+  name: IMDB
+  source: HuggingFace
+  num_classes: 2
+  class_names:
+  - negative
+  - positive
+  train_size: 25000
+  test_size: 25000
+tags:
+- text-classification
+- bert
+- sentiment-analysis
+demo_type: interactive

@@ -1,0 +1,66 @@
+project_id: '04'
+timestamp: '2026-03-05T04:40:07.562072'
+device_used: cuda
+best_model: bert
+metrics:
+  test_accuracy: 92.5
+  f1_macro: 0.924
+  auc_roc: 0.975
+  test_loss: 0.198
+training_history:
+  train_loss:
+  - 0.7762
+  - 0.3483
+  - 0.1735
+  - 0.1277
+  - 0.1044
+  val_loss:
+  - 0.5804
+  - 0.3336
+  - 0.2191
+  - 0.1519
+  - 0.1442
+  learning_rate:
+  - 2.0e-05
+  - 1.7e-05
+  - 1.0e-05
+  - 3.0e-06
+  - 0.0
+  train_acc:
+  - 49.66
+  - 81.06
+  - 89.95
+  - 92.68
+  - 95.4
+  val_acc:
+  - 71.59
+  - 80.91
+  - 89.64
+  - 91.13
+  - 93.17
+model_comparison:
+- model: bert-base
+  accuracy: 92.5
+  params: 110M
+  train_time_min: 45
+- model: distilbert
+  accuracy: 91.2
+  params: 66M
+  train_time_min: 25
+- model: roberta
+  accuracy: 93.1
+  params: 125M
+  train_time_min: 50
+- model: lstm
+  accuracy: 87.3
+  params: 8.5M
+  train_time_min: 15
+per_class_metrics:
+- class: negative
+  precision: 1.0
+  recall: 0.995
+  f1: 1.0
+- class: positive
+  precision: 0.92
+  recall: 0.87
+  f1: 0.869

@@ -1,0 +1,38 @@
+project_num: 2
+project_name: "Object Detection"
+project_dir: "02_Object_Detection"
+domain: "vision"
+description: "Object detection with YOLO/Faster R-CNN"
+category: "Computer Vision"
+input_type: "image"
+output_type: "bounding_boxes"
+demo_type: "interactive"
+
+model:
+  factory_import: "from models import get_model"
+  factory_call: "get_model('fasterrcnn_resnet50_fpn', num_classes=21, pretrained=True)"
+  default_model: "fasterrcnn_resnet50_fpn"
+  models_available: [fasterrcnn_resnet50_fpn, retinanet_resnet50_fpn]
+
+data:
+  has_data_loader: true
+  loader_import: "from data_loader import create_data_loaders"
+  loader_call: "train_loader, val_loader, test_loader = create_data_loaders(batch_size=config['batch_size'], num_workers=platform_config['num_workers'])"
+  dataset_name: "PASCAL VOC"
+  num_classes: 21
+  train_size: 16551
+  test_size: 4952
+
+training:
+  has_train_py: true
+  trainer_import: "from train import DetectionTrainer"
+  trainer_class: "DetectionTrainer"
+  epochs: 5
+  batch_size: 4
+  learning_rate: 0.005
+
+evaluation:
+  metrics: [mAP_50, mAP_50_95]
+  primary_metric: "mAP_50"
+
+tags: [object-detection, yolo, faster-rcnn]

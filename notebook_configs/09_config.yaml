@@ -1,0 +1,38 @@
+project_num: 9
+project_name: "Recommender System"
+project_dir: "09_Recommender_System"
+domain: "tabular"
+description: "Collaborative filtering and neural recommenders"
+category: "Recommender"
+input_type: "tabular"
+output_type: "recommendations"
+demo_type: "interactive"
+
+model:
+  factory_import: "from models import get_model"
+  factory_call: "get_model(config['model_name'], num_users=data_module.num_users, num_items=data_module.num_items, embedding_dim=config.get('embedding_dim', 64))"
+  default_model: "ncf"
+  models_available: [matrix_factorization, ncf, deepfm]
+
+data:
+  has_data_loader: true
+  loader_import: "from data_loader import RecommenderDataModule"
+  loader_call: "data_module = RecommenderDataModule(dataset_name='movielens', data_path='./data', batch_size=config['batch_size'], num_workers=platform_config['num_workers'])\ndata_module.setup()\ntrain_loader = data_module.train_dataloader()\nval_loader = data_module.val_dataloader()\ntest_loader = data_module.test_dataloader()"
+  dataset_name: "MovieLens 100K"
+  num_classes: 0
+  train_size: 80000
+  test_size: 20000
+
+training:
+  has_train_py: true
+  trainer_import: "from train import RecommenderTrainer"
+  trainer_class: "RecommenderTrainer"
+  epochs: 10
+  batch_size: 256
+  learning_rate: 0.001
+
+evaluation:
+  metrics: [rmse, ndcg_10, precision_10, recall_10]
+  primary_metric: "rmse"
+
+tags: [recommender, collaborative-filtering, movielens]
