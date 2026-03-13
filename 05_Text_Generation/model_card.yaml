@@ -10,6 +10,15 @@ models_available:
 - gpt2-medium
 - transformer
 - lstm
+technical_overview:
+  summary: "This project fine-tunes GPT-2 on WikiText-103 for autoregressive text generation, learning to predict the next token given all preceding context. The 103M-token Wikipedia corpus provides diverse, well-structured English text. Memory efficiency is critical — gradient accumulation simulates larger batch sizes without exceeding GPU memory, while activation checkpointing trades compute for memory by recomputing intermediate activations during backprop. LoRA (Low-Rank Adaptation) enables parameter-efficient fine-tuning by only training small rank-decomposition matrices instead of all 124M parameters."
+  pipeline:
+    - "Data preparation: WikiText-103 tokenized into overlapping fixed-length chunks (1024 tokens) with GPT-2 BPE tokenizer"
+    - "Model: GPT-2 (124M params) with causal attention mask — each token can only attend to previous tokens"
+    - "Memory optimization: Gradient accumulation (effective batch size 32-64), activation checkpointing to reduce VRAM usage"
+    - "Parameter-efficient tuning: Optional LoRA adapters (rank 8-16) inserted into attention layers, training only ~1% of total parameters"
+    - "Training: Cross-entropy next-token prediction loss, AdamW optimizer, CosineAnnealingLR with warmup, mixed precision (FP16)"
+    - "Evaluation: Perplexity (lower = better language modeling), plus BLEU/ROUGE for generated text quality"
 dataset:
   name: WikiText-103
   source: HuggingFace
@@ -21,3 +30,33 @@ tags:
 - gpt2
 - language-model
 demo_type: interactive
+
+architecture:
+  type: "Transformer (Causal LM)"
+  key_components:
+  - "GPT-2 causal language model"
+  - "Custom TransformerLM with positional encoding"
+  - "Causal (autoregressive) self-attention masking"
+  - "LSTM language model baseline"
+  - "Token embedding with sinusoidal positional encoding"
+  pretrained: true
+  framework: "PyTorch"
+
+training:
+  loss_function: "CrossEntropyLoss (ignore_index=-100)"
+  optimizer: "AdamW"
+  scheduler: "CosineAnnealingLR"
+  augmentation:
+  - "None (text domain)"
+  mixed_precision: true
+  gradient_clipping: true
+
+methodology:
+  summary: "Fine-tuning GPT-2 on WikiText-103 for next-token prediction with overlapping tokenized chunks and perplexity-based evaluation."
+  key_techniques:
+  - "Optuna HPO"
+  - "Early stopping"
+  - "Overlapping sliding-window tokenization"
+  - "Perplexity evaluation metric"
+  - "Mixed precision training"
+  - "WandB experiment tracking"

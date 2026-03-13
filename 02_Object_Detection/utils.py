@@ -3,6 +3,7 @@ Utility functions for object detection
 """
 import torch
 import torch.nn as nn
+import torchvision
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -93,78 +94,86 @@ def calculate_map(
     iou_threshold: float = 0.5
 ) -> float:
     """
-    Calculate mean Average Precision (mAP)
-    
-    Args:
-        predictions: List of prediction dictionaries
-        targets: List of target dictionaries
-        iou_threshold: IoU threshold for matching
-    
-    Returns:
-        mAP value
+    Calculate mean Average Precision (mAP) using vectorized operations.
     """
-    # Simplified mAP calculation
-    # In practice, use COCO evaluation tools for accurate metrics
-    
-    total_ap = 0
-    num_classes = 0
-    
-    # Group by class
-    class_predictions = defaultdict(list)
-    class_targets = defaultdict(list)
-    
+    # Batch CPU transfer — concatenate all predictions and targets at once
+    all_pred_boxes = []
+    all_pred_scores = []
+    all_pred_labels = []
+    all_gt_boxes = []
+    all_gt_labels = []
+
     for pred, target in zip(predictions, targets):
-        if 'labels' in pred and 'labels' in target:
-            for label, box, score in zip(pred['labels'], pred['boxes'], pred.get('scores', [1.0] * len(pred['labels']))):
-                class_predictions[label.item()].append((box, score))
-            
-            for label, box in zip(target['labels'], target['boxes']):
-                class_targets[label.item()].append(box)
-    
-    # Calculate AP for each class
-    for class_id in set(list(class_predictions.keys()) + list(class_targets.keys())):
-        if class_id in class_targets and len(class_targets[class_id]) > 0:
-            # Sort predictions by score
-            preds = sorted(class_predictions[class_id], key=lambda x: x[1], reverse=True)
-            targets_boxes = class_targets[class_id]
-            
-            # Calculate precision and recall
-            tp = 0
-            fp = 0
-            matched = set()
-            
-            for pred_box, score in preds:
-                best_iou = 0
-                best_idx = -1
-                
-                for idx, target_box in enumerate(targets_boxes):
-                    if idx not in matched:
-                        iou = calculate_iou(pred_box, target_box)
-                        if iou > best_iou:
-                            best_iou = iou
-                            best_idx = idx
-                
-                if best_iou >= iou_threshold:
-                    tp += 1
-                    matched.add(best_idx)
-                else:
-                    fp += 1
-            
-            # Calculate AP (simplified)
-            if tp > 0:
-                precision = tp / (tp + fp)
-                recall = tp / len(targets_boxes)
-                ap = precision * recall  # Simplified AP
-            else:
-                ap = 0
-            
-            total_ap += ap
-            num_classes += 1
-    
-    # Calculate mAP
-    map_value = total_ap / max(num_classes, 1)
-    
-    return map_value
+        if 'labels' not in pred or 'labels' not in target:
+            continue
+        if len(pred['labels']) > 0:
+            all_pred_boxes.append(pred['boxes'].detach().cpu())
+            all_pred_scores.append(pred.get('scores', torch.ones(len(pred['labels']))).detach().cpu())
+            all_pred_labels.append(pred['labels'].detach().cpu())
+        if len(target['labels']) > 0:
+            all_gt_boxes.append(target['boxes'].detach().cpu())
+            all_gt_labels.append(target['labels'].detach().cpu())
+
+    if not all_gt_boxes:
+        return 0.0
+
+    pred_boxes_cat = torch.cat(all_pred_boxes) if all_pred_boxes else torch.zeros(0, 4)
+    pred_scores_cat = torch.cat(all_pred_scores) if all_pred_scores else torch.zeros(0)
+    pred_labels_cat = torch.cat(all_pred_labels) if all_pred_labels else torch.zeros(0, dtype=torch.long)
+    gt_boxes_cat = torch.cat(all_gt_boxes)
+    gt_labels_cat = torch.cat(all_gt_labels)
+
+    all_classes = torch.unique(gt_labels_cat).tolist()
+    total_ap = 0.0
+    num_classes = 0
+
+    for class_id in all_classes:
+        # Mask for this class
+        gt_mask = gt_labels_cat == class_id
+        pred_mask = pred_labels_cat == class_id
+
+        gt_cls = gt_boxes_cat[gt_mask]
+        n_gt = len(gt_cls)
+        if n_gt == 0:
+            continue
+        num_classes += 1
+
+        pred_cls = pred_boxes_cat[pred_mask]
+        scores_cls = pred_scores_cat[pred_mask]
+        if len(pred_cls) == 0:
+            continue
+
+        # Sort by score descending
+        order = scores_cls.argsort(descending=True)
+        pred_cls = pred_cls[order]
+
+        # Vectorized IoU: (P, T)
+        iou_matrix = torchvision.ops.box_iou(pred_cls, gt_cls)
+
+        # Greedy matching
+        matched_gt = torch.zeros(n_gt, dtype=torch.bool)
+        tp = torch.zeros(len(pred_cls))
+        for p_idx in range(len(pred_cls)):
+            ious = iou_matrix[p_idx].clone()
+            ious[matched_gt] = 0.0
+            best_iou, best_gt = ious.max(0)
+            if best_iou.item() >= iou_threshold:
+                tp[p_idx] = 1.0
+                matched_gt[best_gt] = True
+
+        tp_cum = tp.cumsum(0).numpy()
+        fp_cum = (1.0 - tp).cumsum(0).numpy()
+        precision = tp_cum / (tp_cum + fp_cum + 1e-9)
+        recall = tp_cum / (n_gt + 1e-9)
+
+        # 11-point interpolated AP
+        ap = 0.0
+        for r_thresh in np.linspace(0, 1, 11):
+            p_at_r = precision[recall >= r_thresh]
+            ap += p_at_r.max() if len(p_at_r) > 0 else 0.0
+        total_ap += ap / 11.0
+
+    return total_ap / max(num_classes, 1)
 
 
 def evaluate_detection(
@@ -182,17 +191,15 @@ def evaluate_detection(
         Dictionary with evaluation metrics
     """
     metrics = {}
-    
-    # Calculate mAP at different IoU thresholds
-    metrics['map_50'] = calculate_map(predictions, targets, iou_threshold=0.5)
-    metrics['map_75'] = calculate_map(predictions, targets, iou_threshold=0.75)
-    
-    # Calculate average mAP from 0.5 to 0.95
-    map_values = []
-    for iou_thresh in np.arange(0.5, 1.0, 0.05):
-        map_values.append(calculate_map(predictions, targets, iou_threshold=iou_thresh))
-    metrics['map'] = np.mean(map_values)
-    
+
+    # Compute once per threshold, reusing the same grouped data
+    thresholds = np.arange(0.5, 1.0, 0.05)
+    map_values = [calculate_map(predictions, targets, iou_threshold=float(t)) for t in thresholds]
+    metrics['map_50'] = map_values[0]
+    metrics['map_75'] = map_values[5] if len(map_values) > 5 else map_values[0]
+    metrics['mAP'] = float(np.mean(map_values))
+    metrics['map'] = metrics['mAP']
+
     return metrics
 
 

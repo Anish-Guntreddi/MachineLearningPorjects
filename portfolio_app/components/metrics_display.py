@@ -8,8 +8,8 @@ from components.model_loader import PLOTLY_COLORS
 def plotly_layout(title="", height=400):
     """Standard Plotly layout matching portfolio theme."""
     return go.Layout(
-        title=dict(text=title, font=dict(family="JetBrains Mono", size=14, color="#1c1917")),
-        font=dict(family="Source Sans 3", size=12, color="#57534e"),
+        title=dict(text=title, font=dict(family="JetBrains Mono", size=14, color="#fafaf9")),
+        font=dict(family="Source Sans 3", size=12, color="#a8a29e"),
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
         height=height,
@@ -41,8 +41,8 @@ def training_curves(history, metric_pairs=None):
             line=dict(color=PLOTLY_COLORS[1], width=2, dash='dash'),
         ))
 
-    fig.update_xaxes(title_text="Epoch", gridcolor="#e7e5e4", gridwidth=1)
-    fig.update_yaxes(title_text="Loss", gridcolor="#e7e5e4", gridwidth=1)
+    fig.update_xaxes(title_text="Epoch", gridcolor="#292524", gridwidth=1)
+    fig.update_yaxes(title_text="Loss", gridcolor="#292524", gridwidth=1)
     return fig
 
 
@@ -68,8 +68,8 @@ def accuracy_curves(history):
                 line=dict(color=PLOTLY_COLORS[i % len(PLOTLY_COLORS)], width=2, dash=dash),
             ))
 
-    fig.update_xaxes(title_text="Epoch", gridcolor="#e7e5e4")
-    fig.update_yaxes(title_text="Accuracy", gridcolor="#e7e5e4")
+    fig.update_xaxes(title_text="Epoch", gridcolor="#292524")
+    fig.update_yaxes(title_text="Accuracy", gridcolor="#292524")
     return fig
 
 
@@ -100,8 +100,8 @@ def model_comparison_chart(comparisons):
         textfont=dict(family="JetBrains Mono", size=11),
     ))
 
-    fig.update_xaxes(gridcolor="#e7e5e4")
-    fig.update_yaxes(title_text=metric_name, gridcolor="#e7e5e4")
+    fig.update_xaxes(gridcolor="#292524")
+    fig.update_yaxes(title_text=metric_name, gridcolor="#292524")
     fig.update_layout(showlegend=False)
     return fig
 
@@ -124,14 +124,66 @@ def per_class_heatmap(per_class_metrics):
         z=z,
         x=classes,
         y=[m.title() for m in metrics],
-        colorscale=[[0, '#f0fdfa'], [0.5, '#0d9488'], [1, '#0f766e']],
+        colorscale=[[0, '#042f2e'], [0.5, '#0d9488'], [1, '#2dd4bf']],
         text=[[f"{v:.2f}" for v in row] for row in z],
         texttemplate="%{text}",
-        textfont=dict(family="JetBrains Mono", size=10),
+        textfont=dict(family="JetBrains Mono", size=10, color="#fafaf9"),
         showscale=False,
     ))
 
     return fig
+
+
+def learning_rate_curve(history):
+    """Plot learning rate schedule over training."""
+    if not history or 'learning_rate' not in history:
+        return None
+
+    lr_data = history['learning_rate']
+    epochs = list(range(1, len(lr_data) + 1))
+
+    fig = go.Figure(layout=plotly_layout("Learning Rate Schedule", height=300))
+    fig.add_trace(go.Scatter(
+        x=epochs, y=lr_data,
+        name='Learning Rate', mode='lines',
+        line=dict(color=PLOTLY_COLORS[4], width=2),
+        fill='tozeroy', fillcolor='rgba(225, 29, 72, 0.08)',
+    ))
+    fig.update_xaxes(title_text="Epoch", gridcolor="#292524")
+    fig.update_yaxes(title_text="LR", gridcolor="#292524", exponentformat='e')
+    fig.update_layout(showlegend=False)
+    return fig
+
+
+def model_comparison_table(comparisons):
+    """Generate an HTML table comparing all model architectures and their metrics."""
+    if not comparisons:
+        return None
+
+    # Collect all keys across all models
+    all_keys = []
+    for c in comparisons:
+        for k in c:
+            if k not in all_keys:
+                all_keys.append(k)
+
+    header = ''.join(f'<th style="padding:8px 12px;text-align:left;border-bottom:2px solid #2dd4bf;'
+                     f'font-family:JetBrains Mono;font-size:0.8rem;color:#fafaf9;">'
+                     f'{k.replace("_", " ").title()}</th>' for k in all_keys)
+
+    rows = ''
+    for c in comparisons:
+        cells = ''
+        for k in all_keys:
+            val = c.get(k, '-')
+            if isinstance(val, float):
+                val = f'{val:.4f}' if val < 1 else f'{val:.2f}'
+            cells += f'<td style="padding:6px 12px;border-bottom:1px solid #292524;' \
+                     f'font-family:Source Sans 3;font-size:0.85rem;color:#e7e5e4;">{val}</td>'
+        rows += f'<tr>{cells}</tr>'
+
+    return (f'<table style="width:100%;border-collapse:collapse;margin:8px 0;">'
+            f'<thead><tr>{header}</tr></thead><tbody>{rows}</tbody></table>')
 
 
 def radar_chart(projects_data):
@@ -160,8 +212,8 @@ def radar_chart(projects_data):
 
     fig.update_layout(
         polar=dict(
-            radialaxis=dict(visible=True, range=[0, 100], gridcolor="#e7e5e4"),
-            angularaxis=dict(gridcolor="#e7e5e4"),
+            radialaxis=dict(visible=True, range=[0, 100], gridcolor="#292524"),
+            angularaxis=dict(gridcolor="#292524"),
             bgcolor="rgba(0,0,0,0)",
         ),
     )

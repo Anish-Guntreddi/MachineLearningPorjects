@@ -1,0 +1,33 @@
+project_id: '01'
+title: Image Classification
+short_description: CIFAR-10 classification with ResNet/EfficientNet (Optuna-optimized)
+category: Computer Vision
+input_type: image
+output_type: class_label
+default_model: resnet34
+models_available:
+- resnet18
+- resnet34
+- efficientnet_b0
+dataset:
+  name: CIFAR-10
+  num_classes: 10
+  classes:
+  - airplane
+  - automobile
+  - bird
+  - cat
+  - deer
+  - dog
+  - frog
+  - horse
+  - ship
+  - truck
+  train_size: 45000
+  test_size: 10000
+tags:
+- cnn
+- cifar-10
+- image-classification
+- resnet
+demo_type: interactive

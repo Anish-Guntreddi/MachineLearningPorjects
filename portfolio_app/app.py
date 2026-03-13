@@ -1,6 +1,6 @@
 """
 ML Portfolio - Streamlit App
-Entry point: page config, CSS loading, sidebar navigation.
+Entry point: page config, CSS loading, session-state routing.
 """
 import streamlit as st
 from pathlib import Path
@@ -10,7 +10,7 @@ st.set_page_config(
     page_title="ML Portfolio",
     page_icon="",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 # Load CSS
@@ -18,25 +18,16 @@ css_path = Path(__file__).parent / "assets" / "style.css"
 if css_path.exists():
     st.markdown(f"<style>{css_path.read_text()}</style>", unsafe_allow_html=True)
 
-# Sidebar navigation
-with st.sidebar:
-    st.markdown("### ML Portfolio")
-    st.markdown("12 Projects | Deep Learning")
-    st.markdown("---")
+# Initialize session state
+if 'page' not in st.session_state:
+    st.session_state['page'] = 'home'
+if 'selected_project' not in st.session_state:
+    st.session_state['selected_project'] = None
 
-    page = st.radio(
-        "Navigate",
-        ["Home", "Project Detail", "Compare"],
-        label_visibility="collapsed",
-    )
-
-# Route to pages
-if page == "Home":
-    from pages import home
-    home.render()
-elif page == "Project Detail":
-    from pages import project
+# Route based on session state
+if st.session_state['page'] == 'project' and st.session_state['selected_project']:
+    from views import project
     project.render()
-elif page == "Compare":
-    from pages import compare
-    compare.render()
+else:
+    from views import home
+    home.render()

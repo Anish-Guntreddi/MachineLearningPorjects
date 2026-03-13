@@ -1,0 +1,157 @@
+project_id: '07'
+title: Speech Emotion Recognition
+short_description: CNN/CRNN emotion classification from MFCC audio features
+category: Audio
+input_type: audio
+output_type: emotion_label
+default_model: crnn
+models_available:
+- cnn1d
+- cnn2d
+- crnn
+dataset:
+  name: RAVDESS
+  num_classes: 8
+  classes:
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - !!python/object/apply:numpy.dtype
+      args:
+      - U5
+      - false
+      - true
+      state: !!python/tuple
+      - 3
+      - <
+      - null
+      - null
+      - null
+      - 20
+      - 4
+      - 8
+    - !!binary |
+      YQAAAG4AAABnAAAAcgAAAHkAAAA=
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - !!python/object/apply:numpy.dtype
+      args:
+      - U4
+      - false
+      - true
+      state: !!python/tuple
+      - 3
+      - <
+      - null
+      - null
+      - null
+      - 16
+      - 4
+      - 8
+    - !!binary |
+      YwAAAGEAAABsAAAAbQAAAA==
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - !!python/object/apply:numpy.dtype
+      args:
+      - U7
+      - false
+      - true
+      state: !!python/tuple
+      - 3
+      - <
+      - null
+      - null
+      - null
+      - 28
+      - 4
+      - 8
+    - !!binary |
+      ZAAAAGkAAABzAAAAZwAAAHUAAABzAAAAdAAAAA==
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - !!python/object/apply:numpy.dtype
+      args:
+      - U7
+      - false
+      - true
+      state: !!python/tuple
+      - 3
+      - <
+      - null
+      - null
+      - null
+      - 28
+      - 4
+      - 8
+    - !!binary |
+      ZgAAAGUAAABhAAAAcgAAAGYAAAB1AAAAbAAAAA==
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - !!python/object/apply:numpy.dtype
+      args:
+      - U5
+      - false
+      - true
+      state: !!python/tuple
+      - 3
+      - <
+      - null
+      - null
+      - null
+      - 20
+      - 4
+      - 8
+    - !!binary |
+      aAAAAGEAAABwAAAAcAAAAHkAAAA=
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - !!python/object/apply:numpy.dtype
+      args:
+      - U7
+      - false
+      - true
+      state: !!python/tuple
+      - 3
+      - <
+      - null
+      - null
+      - null
+      - 28
+      - 4
+      - 8
+    - !!binary |
+      bgAAAGUAAAB1AAAAdAAAAHIAAABhAAAAbAAAAA==
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - !!python/object/apply:numpy.dtype
+      args:
+      - U3
+      - false
+      - true
+      state: !!python/tuple
+      - 3
+      - <
+      - null
+      - null
+      - null
+      - 12
+      - 4
+      - 8
+    - !!binary |
+      cwAAAGEAAABkAAAA
+  - !!python/object/apply:numpy.core.multiarray.scalar
+    - !!python/object/apply:numpy.dtype
+      args:
+      - U9
+      - false
+      - true
+      state: !!python/tuple
+      - 3
+      - <
+      - null
+      - null
+      - null
+      - 36
+      - 4
+      - 8
+    - !!binary |
+      cwAAAHUAAAByAAAAcAAAAHIAAABpAAAAcwAAAGUAAABkAAAA
+  feature_type: mfcc
+tags:
+- speech-emotion
+- audio-classification
+- mfcc
+- ravdess

@@ -10,7 +10,7 @@ from transformers import (
     BartForConditionalGeneration,
     AutoModelForCausalLM
 )
-from typing import Optional, Dict, Tuple
+from typing import Optional, Dict, Tuple, List
 import math
 
 

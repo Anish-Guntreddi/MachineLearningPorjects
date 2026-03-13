@@ -9,6 +9,38 @@ import math
 from transformers import AutoModel
 
 
+class ImageEncoder(nn.Module):
+    """Simple CNN encoder for raw image tensors (B, 3, 224, 224) -> (B, output_dim)"""
+
+    def __init__(self, output_dim: int = 512):
+        super().__init__()
+        self.features = nn.Sequential(
+            nn.Conv2d(3, 32, 3, stride=2, padding=1), nn.ReLU(), nn.BatchNorm2d(32),
+            nn.Conv2d(32, 64, 3, stride=2, padding=1), nn.ReLU(), nn.BatchNorm2d(64),
+            nn.Conv2d(64, 128, 3, stride=2, padding=1), nn.ReLU(), nn.BatchNorm2d(128),
+            nn.AdaptiveAvgPool2d(1),
+            nn.Flatten(),
+        )
+        self.fc = nn.Linear(128, output_dim)
+
+    def forward(self, x):
+        return self.fc(self.features(x))
+
+
+class TextEncoder(nn.Module):
+    """Embedding encoder for tokenized text (B, seq_len) int64 -> (B, output_dim)"""
+
+    def __init__(self, vocab_size: int = 30000, embed_dim: int = 128, output_dim: int = 512):
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
+        self.fc = nn.Linear(embed_dim, output_dim)
+
+    def forward(self, x):
+        emb = self.embedding(x)     # (B, seq_len, embed_dim)
+        pooled = emb.mean(dim=1)    # (B, embed_dim)
+        return self.fc(pooled)
+
+
 class MultimodalFusion(nn.Module):
     """Base class for multimodal fusion models"""
     
@@ -60,112 +92,64 @@ class MultimodalFusion(nn.Module):
 
 class EarlyFusion(MultimodalFusion):
     """Early fusion: Combine features before processing"""
-    
+
     def __init__(
         self,
-        image_dim: int = 2048,
-        text_dim: int = 768,
-        audio_dim: int = 128,
         fusion_dim: int = 512,
         output_dim: int = 10,
-        dropout: float = 0.2
+        dropout: float = 0.2,
+        **kwargs
     ):
-        super().__init__(
-            image_dim, text_dim, audio_dim,
-            fusion_dim, output_dim, 'concat', dropout
-        )
-        
-        # Project each modality to same dimension
-        if image_dim > 0:
-            self.image_proj = nn.Linear(image_dim, fusion_dim)
-        if text_dim > 0:
-            self.text_proj = nn.Linear(text_dim, fusion_dim)
-        if audio_dim > 0:
-            self.audio_proj = nn.Linear(audio_dim, fusion_dim)
-    
+        # Pass positive dims so base class registers modalities
+        super().__init__(1, 1, 0, fusion_dim, output_dim, 'concat', dropout)
+
+        # Encoders for raw data
+        self.image_enc = ImageEncoder(fusion_dim)
+        self.text_enc = TextEncoder(output_dim=fusion_dim)
+
     def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
         features = []
-        
-        if 'image' in inputs and hasattr(self, 'image_proj'):
-            image_feat = self.image_proj(inputs['image'])
-            features.append(image_feat)
-        
-        if 'text' in inputs and hasattr(self, 'text_proj'):
-            text_feat = self.text_proj(inputs['text'])
-            features.append(text_feat)
-        
-        if 'audio' in inputs and hasattr(self, 'audio_proj'):
-            audio_feat = self.audio_proj(inputs['audio'])
-            features.append(audio_feat)
-        
-        # Concatenate features
+        if 'image' in inputs:
+            features.append(self.image_enc(inputs['image']))
+        if 'text' in inputs:
+            features.append(self.text_enc(inputs['text']))
         fused = torch.cat(features, dim=-1)
-        output = self.fusion_layer(fused)
-        
-        return output
+        return self.fusion_layer(fused)
 
 
 class LateFusion(MultimodalFusion):
     """Late fusion: Process each modality separately then combine"""
-    
+
     def __init__(
         self,
-        image_dim: int = 2048,
-        text_dim: int = 768,
-        audio_dim: int = 128,
         hidden_dim: int = 256,
         output_dim: int = 10,
-        dropout: float = 0.2
+        dropout: float = 0.2,
+        **kwargs
     ):
-        super().__init__(
-            image_dim, text_dim, audio_dim,
-            hidden_dim, output_dim, 'late', dropout
+        super().__init__(1, 1, 0, hidden_dim, output_dim, 'late', dropout)
+
+        # Each branch: encoder → classifier
+        self.image_branch = nn.Sequential(
+            ImageEncoder(hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, output_dim)
         )
-        
-        # Separate networks for each modality
-        if image_dim > 0:
-            self.image_network = nn.Sequential(
-                nn.Linear(image_dim, hidden_dim),
-                nn.ReLU(),
-                nn.Dropout(dropout),
-                nn.Linear(hidden_dim, output_dim)
-            )
-        
-        if text_dim > 0:
-            self.text_network = nn.Sequential(
-                nn.Linear(text_dim, hidden_dim),
-                nn.ReLU(),
-                nn.Dropout(dropout),
-                nn.Linear(hidden_dim, output_dim)
-            )
-        
-        if audio_dim > 0:
-            self.audio_network = nn.Sequential(
-                nn.Linear(audio_dim, hidden_dim),
-                nn.ReLU(),
-                nn.Dropout(dropout),
-                nn.Linear(hidden_dim, output_dim)
-            )
-    
+        self.text_branch = nn.Sequential(
+            TextEncoder(output_dim=hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, output_dim)
+        )
+
     def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
         outputs = []
-        
-        if 'image' in inputs and hasattr(self, 'image_network'):
-            image_out = self.image_network(inputs['image'])
-            outputs.append(image_out)
-        
-        if 'text' in inputs and hasattr(self, 'text_network'):
-            text_out = self.text_network(inputs['text'])
-            outputs.append(text_out)
-        
-        if 'audio' in inputs and hasattr(self, 'audio_network'):
-            audio_out = self.audio_network(inputs['audio'])
-            outputs.append(audio_out)
-        
-        # Average predictions
-        output = torch.stack(outputs).mean(dim=0)
-        
-        return output
+        if 'image' in inputs:
+            outputs.append(self.image_branch(inputs['image']))
+        if 'text' in inputs:
+            outputs.append(self.text_branch(inputs['text']))
+        return torch.stack(outputs).mean(dim=0)
 
 
 class CrossModalAttention(nn.Module):
@@ -231,9 +215,56 @@ class CrossModalAttention(nn.Module):
         return output
 
 
+class AttentionFusion(nn.Module):
+    """Attention-based multimodal fusion model"""
+
+    def __init__(
+        self,
+        fusion_dim: int = 512,
+        output_dim: int = 10,
+        num_heads: int = 8,
+        dropout: float = 0.2,
+        **kwargs
+    ):
+        super().__init__()
+        self.fusion_dim = fusion_dim
+
+        # Encoders for raw data
+        self.image_enc = ImageEncoder(fusion_dim)
+        self.text_enc = TextEncoder(output_dim=fusion_dim)
+
+        # Cross-modal attention
+        self.attention = CrossModalAttention(fusion_dim, num_heads=num_heads, dropout=dropout)
+
+        # Output head
+        self.output_layer = nn.Sequential(
+            nn.Linear(fusion_dim, fusion_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(fusion_dim, output_dim)
+        )
+
+    def forward(self, inputs: Dict[str, torch.Tensor]) -> torch.Tensor:
+        features = []
+        if 'image' in inputs:
+            features.append(self.image_enc(inputs['image']))
+        if 'text' in inputs:
+            features.append(self.text_enc(inputs['text']))
+
+        # Stack modalities as a sequence: (batch, num_modalities, fusion_dim)
+        x = torch.stack(features, dim=1)
+
+        # Self-attention across modalities
+        x = self.attention(x, x, x)
+
+        # Pool across modalities and classify
+        x = x.mean(dim=1)
+        return self.output_layer(x)
+
+
 class HierarchicalFusion(nn.Module):
     """Hierarchical fusion with multiple levels"""
-    
+
     def __init__(
         self,
         image_dim: int = 2048,
@@ -684,6 +715,8 @@ def get_fusion_model(
         return CLIPModel(**kwargs)
     elif model_name == 'transformer':
         return MultimodalTransformer(**kwargs)
+    elif model_name in ('attention_fusion', 'cross_attention'):
+        return AttentionFusion(**kwargs)
     elif model_name == 'gated':
         return GatedFusion(**kwargs)
     elif model_name == 'tensor':

@@ -1,0 +1,21 @@
+project_id: '10'
+title: Time Series Forecasting
+short_description: LSTM/GRU/Transformer forecasting on sequential data
+category: Time Series
+input_type: tabular
+output_type: forecast
+default_model: transformer
+models_available:
+- lstm
+- gru
+- transformer
+- tcn
+dataset:
+  name: synthetic
+  sequence_length: 96
+  prediction_length: 24
+tags:
+- time-series
+- forecasting
+- lstm
+- transformer

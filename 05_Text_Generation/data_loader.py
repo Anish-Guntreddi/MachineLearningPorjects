@@ -297,9 +297,18 @@ def create_data_loaders(
     Returns:
         train_loader, val_loader, test_loader
     """
-    if dataset_name == 'wikitext':
+    if dataset_name in ('wikitext', 'wikitext-103'):
         return WikiTextDataset.load_wikitext(
             version='wikitext-103-v1',
+            tokenizer_name=tokenizer_name,
+            max_length=max_length,
+            stride=stride,
+            batch_size=batch_size,
+            num_workers=num_workers
+        )
+    elif dataset_name == 'wikitext-2':
+        return WikiTextDataset.load_wikitext(
+            version='wikitext-2-v1',
             tokenizer_name=tokenizer_name,
             max_length=max_length,
             stride=stride,

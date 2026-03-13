@@ -59,12 +59,19 @@ class SegmentationTrainer:
             images = [torch.randn(3, 300, 400) for _ in range(4)]
             targets = []
             for _ in range(4):
+                # Generate valid boxes: ensure x1 < x2 and y1 < y2
+                coords = torch.rand(5, 4)
+                x1 = coords[:, 0] * 250
+                y1 = coords[:, 1] * 250
+                x2 = x1 + coords[:, 2] * 50 + 10  # width >= 10
+                y2 = y1 + coords[:, 3] * 50 + 10  # height >= 10
+                boxes = torch.stack([x1, y1, x2, y2], dim=1)
                 target = {
-                    'boxes': torch.rand(5, 4) * 300,
+                    'boxes': boxes,
                     'labels': torch.randint(1, self.config['num_classes'], (5,)),
                     'masks': torch.rand(5, 300, 400) > 0.5,
                     'image_id': torch.tensor([0]),
-                    'area': torch.rand(5) * 1000,
+                    'area': (x2 - x1) * (y2 - y1),
                     'iscrowd': torch.zeros(5, dtype=torch.int64)
                 }
                 targets.append(target)

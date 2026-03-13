@@ -9,6 +9,16 @@ models_available:
 - transformer
 - lstm
 - marian
+technical_overview:
+  summary: "This project implements neural machine translation from German to English using the Multi30k dataset of image caption pairs. A Transformer encoder-decoder architecture with multi-head self-attention learns to map source language representations to target language outputs. The encoder builds contextual representations of German input tokens, while the decoder autoregressively generates English tokens using cross-attention over encoder outputs. Beam search decoding at inference explores multiple translation hypotheses to find the most probable output sequence."
+  pipeline:
+    - "Text preprocessing: Unicode NFKC normalization, control character removal, lowercasing, length filtering (max 128 tokens)"
+    - "Tokenization: Language-specific tokenizers for German (source) and English (target) with shared or separate vocabularies"
+    - "Encoder: Transformer encoder with multi-head self-attention and feed-forward layers builds source language representations"
+    - "Decoder: Transformer decoder with masked self-attention + cross-attention autoregressively generates target tokens"
+    - "Training: Cross-entropy loss with label smoothing (0.1), AdamW optimizer, warmup + inverse sqrt LR schedule"
+    - "Inference: Beam search (beam width 4-5) with length penalty for fluent, complete translations"
+    - "Evaluation: BLEU score measuring n-gram overlap between predicted and reference translations"
 dataset:
   name: Multi30k
   source: HuggingFace
@@ -20,3 +30,33 @@ tags:
 - seq2seq
 - transformer
 demo_type: precomputed
+
+architecture:
+  type: "Transformer (Seq2Seq)"
+  key_components:
+  - "Encoder-decoder Transformer with positional encoding"
+  - "Multi-head self-attention and cross-attention"
+  - "MarianMT pretrained translation model"
+  - "Sinusoidal positional encoding"
+  - "Separate source and target embeddings"
+  pretrained: true
+  framework: "PyTorch"
+
+training:
+  loss_function: "CrossEntropyLoss with label smoothing (0.1), ignore padding"
+  optimizer: "Adam (betas=0.9, 0.98, eps=1e-9)"
+  scheduler: "ReduceLROnPlateau"
+  augmentation:
+  - "None (text domain)"
+  mixed_precision: true
+  gradient_clipping: true
+
+methodology:
+  summary: "Custom Transformer seq2seq model for German-English translation with label smoothing, teacher forcing, and BLEU score evaluation."
+  key_techniques:
+  - "Optuna HPO"
+  - "Early stopping"
+  - "Label smoothing"
+  - "Teacher forcing during training"
+  - "SacreBLEU evaluation"
+  - "d_model % nhead divisibility guard"

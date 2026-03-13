@@ -1,0 +1,66 @@
+project_id: 08
+timestamp: '2026-03-11T16:31:10.414286'
+device_used: cuda
+best_model: deepspeech2
+optuna:
+  n_trials: 5
+  best_wer: 0.9999809799147901
+  best_wer_pct: 99.998097991479
+  best_params:
+    lr: 0.001718813128120389
+    hidden_dim: 512
+    num_layers: 6
+    dropout: 0.1659014294362045
+  completed_trials: 5
+metrics:
+  best_val_wer: 1.0
+  best_val_wer_pct: 100.0
+  target_wer_pct: 40.0
+  target_met: false
+  final_val_wer_pct: 100.0
+training_history:
+  train_loss:
+  - 4.500123833763529
+  - 3.5076966454996867
+  - 3.506708661480063
+  - 3.3500918537907345
+  - 3.3330798642875177
+  - 3.3494553241504015
+  val_loss:
+  - 3.74818663335428
+  - 3.2867100456865823
+  - 3.314050555229187
+  - 3.3385692893004997
+  - 3.4001857260378396
+  - 3.305527066312185
+  train_wer:
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  val_wer:
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  epochs_trained: 6
+final_config:
+  model_name: deepspeech2
+  dataset: librispeech
+  data_path: ./data
+  feature_type: melspec
+  librispeech_train_split: dev-clean
+  librispeech_val_split: test-clean
+  hidden_dim: 512
+  num_layers: 6
+  dropout: 0.1659014294362045
+  epochs: 15
+  batch_size: 16
+  learning_rate: 0.001718813128120389
+  weight_decay: 1.0e-05
+  use_amp: true
+  checkpoint_dir: ./checkpoints

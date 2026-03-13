@@ -1,0 +1,25 @@
+project_id: '04'
+title: Text Classification
+short_description: BERT fine-tuned for sentiment analysis on IMDb
+category: NLP
+input_type: text
+output_type: class_label
+default_model: bert
+models_available:
+- bert
+- distilbert
+dataset:
+  name: IMDb Movie Reviews
+  num_classes: 2
+  classes:
+  - negative
+  - positive
+  train_size: 22500
+  val_size: 2500
+  test_size: 25000
+tags:
+- text-classification
+- sentiment-analysis
+- transformers
+- bert
+demo_type: interactive

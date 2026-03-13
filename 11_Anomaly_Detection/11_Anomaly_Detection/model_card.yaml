@@ -1,0 +1,19 @@
+project_id: '11'
+title: Anomaly Detection
+short_description: Autoencoder-based unsupervised anomaly detection on tabular data
+category: Anomaly Detection
+input_type: tabular
+output_type: anomaly_score
+default_model: ae
+models_available:
+- ae
+- vae
+dataset:
+  name: synthetic
+  task: binary anomaly detection
+tags:
+- anomaly-detection
+- autoencoder
+- vae
+- unsupervised
+- reconstruction-error

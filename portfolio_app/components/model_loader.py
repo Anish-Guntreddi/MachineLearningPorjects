@@ -9,14 +9,14 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).parent.parent.parent
 
 CATEGORY_COLORS = {
-    "Computer Vision": {"css": "vision", "color": "#2563eb", "bg": "#dbeafe"},
-    "NLP": {"css": "nlp", "color": "#d97706", "bg": "#fef3c7"},
-    "Audio": {"css": "audio", "color": "#7c3aed", "bg": "#ede9fe"},
-    "Tabular": {"css": "tabular", "color": "#059669", "bg": "#d1fae5"},
-    "Multimodal": {"css": "multimodal", "color": "#e11d48", "bg": "#ffe4e6"},
+    "Computer Vision": {"css": "vision", "color": "#60a5fa", "bg": "#1e3a5f"},
+    "NLP": {"css": "nlp", "color": "#fbbf24", "bg": "#422006"},
+    "Audio": {"css": "audio", "color": "#a78bfa", "bg": "#2e1065"},
+    "Tabular": {"css": "tabular", "color": "#34d399", "bg": "#064e3b"},
+    "Multimodal": {"css": "multimodal", "color": "#fb7185", "bg": "#4c0519"},
 }
 
-PLOTLY_COLORS = ["#2563eb", "#d97706", "#059669", "#7c3aed", "#e11d48", "#0891b2", "#4f46e5", "#ca8a04"]
+PLOTLY_COLORS = ["#60a5fa", "#fbbf24", "#34d399", "#a78bfa", "#fb7185", "#22d3ee", "#818cf8", "#facc15"]
 
 
 @st.cache_data
@@ -86,7 +86,10 @@ def load_model_safe(project_dir, model_name):
     """Attempt to load a trained model. Returns dict with model and live status."""
     try:
         import sys
-        import torch
+        try:
+            import torch
+        except ImportError:
+            return {"model": None, "live": False}
         project_path = REPO_ROOT / project_dir
         if str(project_path) not in sys.path:
             sys.path.insert(0, str(project_path))

@@ -11,6 +11,15 @@ models_available:
 - resnet50
 - efficientnet_b0
 - vit_tiny_patch16_224
+technical_overview:
+  summary: "This project tackles image classification on CIFAR-10, a benchmark dataset of 32x32 RGB images across 10 everyday object categories. Deep convolutional neural networks (ResNet, EfficientNet, Vision Transformer) are trained with aggressive data augmentation (Mixup, CutMix, AutoAugment, RandomCrop, ColorJitter) to learn hierarchical visual features — from edges and textures in early layers to object-level semantics in deeper layers. Mixed precision training (FP16) with gradient clipping ensures stable, memory-efficient optimization, while CosineAnnealingLR with warmup controls the learning rate schedule for smooth convergence."
+  pipeline:
+    - "Data loading and augmentation: RandomCrop, HorizontalFlip, ColorJitter, Mixup, CutMix, AutoAugment via torchvision transforms"
+    - "Feature extraction: CNN backbone (ResNet-18/50, EfficientNet-B0/B3, or ViT-Small) processes 32x32 RGB inputs into feature maps"
+    - "Classification head: Global average pooling followed by fully connected layer mapping features to 10 class logits"
+    - "Training: Cross-entropy loss with label smoothing, AdamW optimizer, mixed precision (GradScaler + autocast), gradient clipping at 1.0"
+    - "LR scheduling: CosineAnnealingLR with linear warmup over first 5 epochs for stable early training"
+    - "Evaluation: Top-1 and Top-5 accuracy, per-class precision/recall/F1, confusion matrix analysis"
 dataset:
   name: CIFAR-10
   source: torchvision
@@ -33,3 +42,38 @@ tags:
 - cifar-10
 - image-classification
 demo_type: interactive
+
+architecture:
+  type: "CNN / Vision Transformer"
+  key_components:
+  - "ResNet residual connections"
+  - "EfficientNet compound scaling"
+  - "Vision Transformer (ViT) patch embeddings"
+  - "Ensemble model with weighted averaging"
+  - "Custom classification head with dropout"
+  pretrained: true
+  framework: "PyTorch"
+
+training:
+  loss_function: "CrossEntropyLoss with label smoothing (0.1)"
+  optimizer: "AdamW"
+  scheduler: "CosineAnnealingLR / OneCycleLR"
+  augmentation:
+  - "RandomCrop with padding"
+  - "RandomHorizontalFlip"
+  - "ColorJitter"
+  - "RandomRotation"
+  - "Mixup"
+  - "CutMix"
+  mixed_precision: true
+  gradient_clipping: true
+
+methodology:
+  summary: "Transfer learning with pretrained CNNs and Vision Transformers on CIFAR-10, using aggressive data augmentation (Mixup, CutMix) and label smoothing to improve generalization."
+  key_techniques:
+  - "Optuna HPO"
+  - "Early stopping"
+  - "Label smoothing"
+  - "Mixup / CutMix augmentation"
+  - "Mixed precision training"
+  - "WandB experiment tracking"

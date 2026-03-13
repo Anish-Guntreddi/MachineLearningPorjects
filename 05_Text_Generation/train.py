@@ -194,8 +194,9 @@ class TextGenerationTrainer:
 
     def _forward(self, input_ids, attention_mask, labels):
         """Forward pass handling different model types"""
-        # HuggingFace models (GPT2LMHeadModel, etc.)
-        if hasattr(self.model, 'forward') and 'labels' in self.model.forward.__code__.co_varnames:
+        # HuggingFace PreTrainedModel subclasses (GPT2LMHeadModel, etc.)
+        # Detected via .config attribute present on all HuggingFace models
+        if hasattr(self.model, 'config'):
             return self.model(
                 input_ids=input_ids,
                 attention_mask=attention_mask,

@@ -1,0 +1,20 @@
+project_id: '05'
+title: Text Generation
+short_description: GPT-2 fine-tuned for causal language modeling on WikiText-2
+category: NLP
+input_type: text
+output_type: generated_text
+default_model: gpt2
+models_available:
+- gpt2
+- gpt2-medium
+dataset:
+  name: WikiText-2
+  num_classes: 0
+  vocab_size: 50257
+tags:
+- text-generation
+- gpt2
+- language-model
+- causal-lm
+demo_type: interactive

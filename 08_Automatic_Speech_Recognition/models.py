@@ -520,6 +520,9 @@ def get_model(
     model_name = model_name.lower()
     
     if model_name == 'deepspeech2':
+        # Normalize num_layers → num_rnn_layers for DeepSpeech2
+        if 'num_layers' in kwargs:
+            kwargs['num_rnn_layers'] = kwargs.pop('num_layers')
         return DeepSpeech2(
             input_dim=input_dim,
             num_classes=num_classes,

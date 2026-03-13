@@ -1,0 +1,40 @@
+project_id: '05'
+timestamp: '2026-03-10T22:58:59.662762'
+device_used: cuda
+best_model: gpt2
+optuna:
+  n_trials: 5
+  best_perplexity: 19.994328235202737
+  best_params:
+    lr: 1.841618812000695e-05
+    batch_size: 4
+    weight_decay: 0.05426646331737626
+metrics:
+  best_val_perplexity: 19.021747882775284
+  final_val_perplexity: 19.021747882775284
+  epochs_trained: 5
+training_config:
+  learning_rate: 1.841618812000695e-05
+  weight_decay: 0.05426646331737626
+  batch_size: 4
+  max_length: 256
+  stride: 128
+training_history:
+  train_loss:
+  - 3.2281200673062127
+  - 3.0723999973440255
+  - 2.9870334930421616
+  - 2.921887614850088
+  - 2.8675590462040272
+  val_loss:
+  - 3.0452875043281633
+  - 2.992586829670573
+  - 2.965099253868974
+  - 2.949633449831636
+  - 2.945582949991457
+  val_ppl:
+  - 21.016072546199748
+  - 19.937189956850574
+  - 19.396628336340648
+  - 19.098951721047662
+  - 19.021747882775284

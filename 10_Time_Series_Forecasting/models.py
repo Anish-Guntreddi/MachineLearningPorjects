@@ -23,12 +23,13 @@ class LSTM(nn.Module):
         bidirectional: bool = False
     ):
         super().__init__()
-        
+
+        self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
         self.prediction_length = prediction_length
         self.bidirectional = bidirectional
-        
+
         # LSTM layers
         self.lstm = nn.LSTM(
             input_dim,
@@ -38,47 +39,38 @@ class LSTM(nn.Module):
             dropout=dropout if num_layers > 1 else 0,
             bidirectional=bidirectional
         )
-        
+
         # Output layers
         lstm_output_dim = hidden_dim * 2 if bidirectional else hidden_dim
         self.fc = nn.Linear(lstm_output_dim, output_dim)
         self.dropout = nn.Dropout(dropout)
+        # Project output back to input_dim for autoregressive decoding
+        self.decoder_projection = nn.Linear(output_dim, input_dim)
     
     def forward(self, x):
         # x shape: (batch, sequence_length, input_dim)
-        batch_size = x.size(0)
-        
-        # LSTM forward
-        lstm_out, (hidden, cell) = self.lstm(x)
-        
-        # Use last hidden state for prediction
-        if self.bidirectional:
-            # Combine forward and backward hidden states
-            hidden_forward = hidden[-2]
-            hidden_backward = hidden[-1]
-            last_hidden = torch.cat([hidden_forward, hidden_backward], dim=1)
-        else:
-            last_hidden = hidden[-1]
-        
-        # Generate predictions
+        # LSTM forward pass
+        _, (h, c) = self.lstm(x)
+        # h: (num_layers * num_directions, batch, hidden_dim)
+        # c: (num_layers * num_directions, batch, hidden_dim)
+
+        # Generate predictions autoregressively
         predictions = []
-        h = last_hidden.unsqueeze(1)
-        c = cell[-1].unsqueeze(1) if not self.bidirectional else cell[-1].unsqueeze(1)
-        
         for _ in range(self.prediction_length):
-            # Use last hidden state to predict next step
-            out = self.fc(self.dropout(h.squeeze(1)))
+            # Predict from last layer's hidden state
+            if self.bidirectional:
+                last_h = torch.cat([h[-2], h[-1]], dim=1)
+            else:
+                last_h = h[-1]
+
+            out = self.fc(self.dropout(last_h))
             predictions.append(out)
-            
-            # Use prediction as input for next step (teacher forcing disabled)
-            h, c = self.lstm(out.unsqueeze(1), (h.transpose(0, 1), c.transpose(0, 1)))
-            h = h.transpose(0, 1)
-            c = c.transpose(0, 1)
-        
-        # Stack predictions
-        predictions = torch.stack(predictions, dim=1)
-        
-        return predictions
+
+            # Feed prediction (projected back to input_dim) into next LSTM step
+            dec_in = self.decoder_projection(out).unsqueeze(1)
+            _, (h, c) = self.lstm(dec_in, (h, c))
+
+        return torch.stack(predictions, dim=1)
 
 
 class GRU(nn.Module):
@@ -94,11 +86,11 @@ class GRU(nn.Module):
         dropout: float = 0.2
     ):
         super().__init__()
-        
+
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
         self.prediction_length = prediction_length
-        
+
         # GRU layers
         self.gru = nn.GRU(
             input_dim,
@@ -107,30 +99,29 @@ class GRU(nn.Module):
             batch_first=True,
             dropout=dropout if num_layers > 1 else 0
         )
-        
+
         # Output layer
         self.fc = nn.Linear(hidden_dim, output_dim)
         self.dropout = nn.Dropout(dropout)
+        # Project output back to input_dim for autoregressive decoding
+        self.decoder_projection = nn.Linear(output_dim, input_dim)
     
     def forward(self, x):
-        # GRU forward
-        gru_out, hidden = self.gru(x)
-        
-        # Generate predictions
+        # GRU forward pass
+        _, h = self.gru(x)
+        # h: (num_layers, batch, hidden_dim)
+
+        # Generate predictions autoregressively
         predictions = []
-        h = hidden[-1].unsqueeze(1)
-        
         for _ in range(self.prediction_length):
-            out = self.fc(self.dropout(h.squeeze(1)))
+            out = self.fc(self.dropout(h[-1]))
             predictions.append(out)
-            
-            # Use prediction as input for next step
-            h, _ = self.gru(out.unsqueeze(1), h.transpose(0, 1))
-            h = h.transpose(0, 1)
-        
-        predictions = torch.stack(predictions, dim=1)
-        
-        return predictions
+
+            # Feed prediction (projected back to input_dim) into next GRU step
+            dec_in = self.decoder_projection(out).unsqueeze(1)
+            _, h = self.gru(dec_in, h)
+
+        return torch.stack(predictions, dim=1)
 
 
 class TransformerModel(nn.Module):
@@ -624,19 +615,37 @@ def get_model(
         Time series model
     """
     model_name = model_name.lower()
-    
+
     if model_name == 'lstm':
         return LSTM(input_dim=input_dim, prediction_length=prediction_length, **kwargs)
     elif model_name == 'gru':
         return GRU(input_dim=input_dim, prediction_length=prediction_length, **kwargs)
-    elif model_name == 'transformer':
-        return TransformerModel(input_dim=input_dim, prediction_length=prediction_length, **kwargs)
-    elif model_name == 'informer':
-        return Informer(input_dim=input_dim, prediction_length=prediction_length, **kwargs)
+    elif model_name in ('transformer', 'informer'):
+        kw = dict(kwargs)
+        if 'hidden_dim' in kw:
+            kw['d_model'] = kw.pop('hidden_dim')
+        if 'num_layers' in kw:
+            nl = kw.pop('num_layers')
+            kw.setdefault('num_encoder_layers', nl)
+            kw.setdefault('num_decoder_layers', nl)
+        # Ensure d_model is divisible by nhead
+        d_model = kw.get('d_model', 512)
+        nhead = kw.get('nhead', 8)
+        if d_model % nhead != 0:
+            kw['d_model'] = max(nhead, (d_model // nhead) * nhead)
+        cls = TransformerModel if model_name == 'transformer' else Informer
+        return cls(input_dim=input_dim, prediction_length=prediction_length, **kw)
     elif model_name == 'tcn':
-        return TCN(input_dim=input_dim, prediction_length=prediction_length, **kwargs)
+        kw = dict(kwargs)
+        hidden_dim = kw.pop('hidden_dim', 64)
+        kw.pop('num_layers', None)
+        kw['num_channels'] = [hidden_dim] * 4
+        return TCN(input_dim=input_dim, prediction_length=prediction_length, **kw)
     elif model_name == 'nbeats':
-        return NBeats(input_dim=input_dim, prediction_length=prediction_length, **kwargs)
+        kw = dict(kwargs)
+        kw.pop('num_layers', None)
+        kw.pop('dropout', None)
+        return NBeats(input_dim=input_dim, prediction_length=prediction_length, **kw)
     else:
         raise ValueError(f"Unknown model: {model_name}")
 

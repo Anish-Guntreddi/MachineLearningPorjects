@@ -12,6 +12,15 @@ models_available:
 - custom_transformer
 - cnn
 - lstm
+technical_overview:
+  summary: "This project classifies IMDB movie reviews as positive or negative using transformer-based models (BERT, RoBERTa) fine-tuned for binary sentiment analysis. The pipeline starts with text cleaning (HTML/URL removal, lowercasing) followed by subword tokenization that handles out-of-vocabulary words gracefully. Pre-trained language model weights provide rich contextual embeddings that capture word meaning in context, while a classification head with dropout regularization maps the [CLS] token representation to sentiment predictions. Training uses warmup steps to stabilize early optimization of the pre-trained weights."
+  pipeline:
+    - "Text preprocessing: HTML tag removal, URL stripping, lowercasing, special character handling"
+    - "Tokenization: BERT/RoBERTa WordPiece tokenizer converts text to subword token IDs with attention masks (max 512 tokens)"
+    - "Embedding: Pre-trained transformer encodes tokens into 768-dim contextual embeddings capturing bidirectional context"
+    - "Classification: [CLS] token pooled output passed through dropout (0.1-0.3) and linear layer for binary prediction"
+    - "Training: Binary cross-entropy loss, AdamW with weight decay, linear warmup then linear decay LR schedule"
+    - "Evaluation: Accuracy, precision, recall, F1-score on held-out 25K test reviews"
 dataset:
   name: IMDB
   source: HuggingFace
@@ -26,3 +35,33 @@ tags:
 - bert
 - sentiment-analysis
 demo_type: interactive
+
+architecture:
+  type: "Transformer"
+  key_components:
+  - "BERT / RoBERTa / DistilBERT pretrained encoders"
+  - "Custom classification head with dropout layers"
+  - "CNN text classifier with multi-size filters (3, 4, 5)"
+  - "Bidirectional LSTM with attention"
+  - "Custom Transformer encoder with positional encoding"
+  pretrained: true
+  framework: "PyTorch"
+
+training:
+  loss_function: "CrossEntropyLoss with label smoothing (0.1)"
+  optimizer: "AdamW"
+  scheduler: "CosineAnnealingLR / ReduceLROnPlateau"
+  augmentation:
+  - "None (text domain)"
+  mixed_precision: true
+  gradient_clipping: true
+
+methodology:
+  summary: "Fine-tuning pretrained transformer models (BERT, RoBERTa) on IMDB sentiment analysis with differential weight decay and early stopping for regularization."
+  key_techniques:
+  - "Optuna HPO"
+  - "Early stopping"
+  - "Label smoothing"
+  - "Differential weight decay (bias vs LayerNorm excluded)"
+  - "HuggingFace tokenizer integration"
+  - "Mixed precision training"

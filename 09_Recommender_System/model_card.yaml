@@ -9,6 +9,16 @@ models_available:
 - matrix_factorization
 - ncf
 - deepfm
+technical_overview:
+  summary: "This project builds a movie recommendation system on MovieLens 100K using collaborative filtering — learning user preferences from the interaction matrix of 943 users rating 1,682 movies. The sparse user-item matrix (only 6.3% of possible ratings observed) is decomposed using matrix factorization or neural collaborative filtering (NCF) to learn latent embeddings that capture user taste and movie characteristics. Temporal train-test splitting preserves realistic evaluation by predicting future ratings from past behavior. Negative sampling generates implicit non-preference signals from unrated items."
+  pipeline:
+    - "Data loading: MovieLens 100K parsed into user-item-rating triplets with timestamps"
+    - "Temporal splitting: Ratings sorted by time; earlier ratings for training, later for testing (no future data leakage)"
+    - "Negative sampling: For each positive interaction, sample N unrated items as negative examples (ratio 4:1)"
+    - "Embedding layer: User and item IDs mapped to learnable dense vectors (32-128 dimensions)"
+    - "Interaction modeling: Matrix factorization (dot product) or NCF (MLP on concatenated embeddings) predicts ratings"
+    - "Training: MSE loss for explicit ratings or BCE loss for implicit feedback, AdamW optimizer"
+    - "Evaluation: RMSE for rating prediction accuracy, MAP and NDCG@K for ranking quality"
 dataset:
   name: MovieLens 100K
   source: surprise
@@ -20,3 +30,33 @@ tags:
 - collaborative-filtering
 - movielens
 demo_type: interactive
+
+architecture:
+  type: "Embedding-based Neural Network"
+  key_components:
+  - "Matrix Factorization with user/item embeddings and biases"
+  - "Neural Collaborative Filtering (NCF) with MLP layers"
+  - "DeepFM combining factorization machines and deep learning"
+  - "User and item embedding layers"
+  - "Negative sampling for implicit feedback"
+  pretrained: false
+  framework: "PyTorch"
+
+training:
+  loss_function: "MSELoss (rating prediction) / BCEWithLogitsLoss (ranking)"
+  optimizer: "Adam"
+  scheduler: "CosineAnnealingLR / ReduceLROnPlateau"
+  augmentation:
+  - "Negative sampling"
+  mixed_precision: true
+  gradient_clipping: false
+
+methodology:
+  summary: "Neural collaborative filtering with embedding-based models on MovieLens 100K, using negative sampling for implicit feedback and RMSE/MAE evaluation for rating prediction."
+  key_techniques:
+  - "Optuna HPO"
+  - "Early stopping"
+  - "Negative sampling (4 negatives per positive)"
+  - "Sparse interaction matrix construction"
+  - "RMSE and MAE evaluation"
+  - "Mixed precision training"

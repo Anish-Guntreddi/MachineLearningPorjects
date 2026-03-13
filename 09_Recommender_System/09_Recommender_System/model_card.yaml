@@ -1,0 +1,20 @@
+project_id: 09
+title: Recommender System
+short_description: Neural collaborative filtering for movie rating prediction
+category: Recommender
+input_type: tabular
+output_type: rating_prediction
+default_model: deepfm
+models_available:
+- ncf
+- mf
+- deepfm
+dataset:
+  name: MovieLens 100K
+  num_users: 943
+  num_items: 1635
+tags:
+- recommender
+- collaborative-filtering
+- ncf
+- movielens

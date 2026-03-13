@@ -1,0 +1,48 @@
+project_id: '04'
+timestamp: '2026-03-10T12:54:51.461530'
+device_used: cuda
+best_model: bert
+optuna:
+  n_trials: 5
+  best_accuracy: 0.936
+  best_params:
+    model_name: bert
+    lr: 1.7980202418239346e-05
+    batch_size: 8
+    weight_decay: 0.05257715341297482
+metrics:
+  best_val_accuracy: 0.9316
+  best_val_f1: 0.9315981504139872
+  epochs_trained: 5
+training_config:
+  model_name: bert
+  tokenizer_name: bert-base-uncased
+  learning_rate: 1.7980202418239346e-05
+  weight_decay: 0.05257715341297482
+  batch_size: 8
+  max_length: 512
+training_history:
+  train_loss:
+  - 0.24479114320543077
+  - 0.12298593258327908
+  - 0.06265965267817179
+  - 0.04427633030149672
+  - 0.03057756167517768
+  val_loss:
+  - 0.19332596406936645
+  - 0.22724177982658147
+  - 0.2738756622299552
+  - 0.2746352662973106
+  - 0.27887118391916155
+  val_accuracy:
+  - 0.9276
+  - 0.9268
+  - 0.9236
+  - 0.9316
+  - 0.922
+  val_f1:
+  - 0.927572176127181
+  - 0.9267985828205634
+  - 0.9235773911353935
+  - 0.9315981504139872
+  - 0.9219971918989084

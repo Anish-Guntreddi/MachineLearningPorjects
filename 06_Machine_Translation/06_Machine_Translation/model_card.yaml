@@ -1,0 +1,20 @@
+project_id: '06'
+title: Machine Translation
+short_description: Custom Transformer seq2seq model for English-to-German translation
+category: NLP
+input_type: text
+output_type: translated_text
+default_model: transformer
+models_available:
+- transformer
+dataset:
+  name: Synthetic / Multi30k
+  num_classes: 0
+  src_vocab_size: 32000
+  tgt_vocab_size: 32000
+tags:
+- machine-translation
+- seq2seq
+- transformer
+- bleu
+demo_type: precomputed

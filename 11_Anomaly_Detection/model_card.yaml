@@ -10,6 +10,17 @@ models_available:
 - vae
 - isolation_forest
 - deep_svdd
+technical_overview:
+  summary: "This project detects anomalies in credit card transactions using reconstruction-based deep learning — autoencoders and variational autoencoders (VAE) learn to compress normal transaction patterns into a low-dimensional latent space, then flag transactions with high reconstruction error as anomalous. The 30 PCA-transformed features from the original dataset are normalized with StandardScaler before training exclusively on normal samples, so the model learns only the distribution of legitimate transactions. At inference, fraudulent transactions that deviate from learned patterns produce elevated reconstruction errors, enabling threshold-based anomaly detection."
+  pipeline:
+    - "Data loading: Credit card dataset with 30 PCA-transformed features and binary labels (normal/fraud)"
+    - "Preprocessing: StandardScaler normalization fitted on training set; train split contains only normal samples"
+    - "Autoencoder architecture: Encoder compresses 30-dim input → bottleneck (8-16 dims) → decoder reconstructs original"
+    - "VAE variant: Adds KL divergence regularization to learn a smooth latent space distribution"
+    - "Training: MSE reconstruction loss (+ KL loss for VAE), AdamW optimizer, mixed precision training"
+    - "Anomaly scoring: Per-sample reconstruction error computed; high error = likely anomaly"
+    - "Threshold selection: Percentile-based or F1-optimized threshold on validation reconstruction errors"
+    - "Evaluation: AUC-ROC (threshold-independent), precision-recall curve, F1 at optimal threshold"
 dataset:
   name: Synthetic / Credit Card
   source: custom
@@ -24,3 +35,33 @@ tags:
 - autoencoder
 - unsupervised
 demo_type: interactive
+
+architecture:
+  type: "Autoencoder / Variational Autoencoder"
+  key_components:
+  - "Symmetric AutoEncoder with BatchNorm"
+  - "Variational AutoEncoder (VAE) with reparameterization trick"
+  - "Deep SVDD (Support Vector Data Description)"
+  - "Reconstruction-error-based anomaly scoring"
+  - "Configurable hidden dimensions and encoding dim"
+  pretrained: false
+  framework: "PyTorch"
+
+training:
+  loss_function: "MSELoss (AE) / VAELoss (reconstruction + KL divergence) / DeepSVDDLoss"
+  optimizer: "Adam"
+  scheduler: "CosineAnnealingLR / ReduceLROnPlateau"
+  augmentation:
+  - "None"
+  mixed_precision: true
+  gradient_clipping: true
+
+methodology:
+  summary: "Unsupervised anomaly detection using reconstruction error from autoencoders and VAEs, with threshold-based anomaly scoring evaluated by AUC-ROC and average precision."
+  key_techniques:
+  - "Optuna HPO"
+  - "Early stopping"
+  - "Reconstruction error as anomaly score"
+  - "StandardScaler preprocessing"
+  - "Sliding window for time series anomalies"
+  - "AUC-ROC and Average Precision evaluation"

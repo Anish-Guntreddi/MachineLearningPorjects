@@ -10,6 +10,16 @@ models_available:
 - cnn2d
 - lstm
 - cnn_lstm
+technical_overview:
+  summary: "This project recognizes 8 emotions from speech audio using the RAVDESS dataset of professional actor recordings. The pipeline extracts multiple acoustic feature types — MFCCs capture vocal tract shape, spectral features (centroid, rolloff, zero-crossing rate) characterize tonal quality, and prosodic features encode rhythm and intonation. These handcrafted features are aggregated via statistical functions (mean, std, min, max) over time frames, then fed into neural network classifiers. Audio preprocessing includes silence trimming and fixed-duration padding to normalize input lengths across recordings."
+  pipeline:
+    - "Audio loading: WAV files loaded at 22050 Hz via librosa, normalized to [-1, 1] amplitude range"
+    - "Preprocessing: Silence trimming (threshold 20dB), fixed-duration padding/cropping to 3-5 seconds"
+    - "MFCC extraction: 13 Mel-frequency cepstral coefficients computed per frame, capturing vocal tract resonance patterns"
+    - "Spectral features: Spectral centroid, rolloff, bandwidth, and zero-crossing rate characterize tonal brightness and noisiness"
+    - "Feature aggregation: Mean, std, min, max computed over time frames → fixed-length feature vector per audio clip"
+    - "Classification: Neural network (CNN or MLP) maps feature vectors to 8 emotion classes with softmax output"
+    - "Evaluation: Per-emotion precision/recall/F1, confusion matrix, overall accuracy across speaker-independent splits"
 dataset:
   name: RAVDESS
   source: Kaggle
@@ -30,3 +40,36 @@ tags:
 - audio-classification
 - ravdess
 demo_type: precomputed
+
+architecture:
+  type: "CNN-LSTM Hybrid"
+  key_components:
+  - "1D CNN for raw audio / feature sequence processing"
+  - "2D CNN for spectrogram-based classification"
+  - "CNN-LSTM hybrid combining spatial and temporal features"
+  - "Adaptive average pooling for variable-length inputs"
+  - "Multi-feature extraction (MFCC, Mel spectrogram, combined)"
+  pretrained: false
+  framework: "PyTorch"
+
+training:
+  loss_function: "CrossEntropyLoss"
+  optimizer: "AdamW"
+  scheduler: "CosineAnnealingLR / ReduceLROnPlateau"
+  augmentation:
+  - "Time stretching"
+  - "Pitch shifting"
+  - "Background noise injection"
+  - "MFCC with deltas and delta-deltas"
+  mixed_precision: true
+  gradient_clipping: true
+
+methodology:
+  summary: "Multi-feature audio classification using CNN-LSTM architectures on MFCC, Mel spectrogram, and combined features extracted from the RAVDESS emotional speech dataset."
+  key_techniques:
+  - "Optuna HPO"
+  - "Early stopping"
+  - "Multi-feature extraction (MFCC, Mel spectrogram, combined)"
+  - "Classification report and confusion matrix evaluation"
+  - "Mixed precision training"
+  - "WandB experiment tracking"

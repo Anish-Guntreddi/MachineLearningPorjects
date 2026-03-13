@@ -289,6 +289,7 @@ IMPLEMENTATION_PLAN.md
 !**/model_card.yaml
 !**/results.yaml
 !portfolio_app/requirements.txt
+!requirements.txt
 !portfolio_app/packages.txt
 !notebook_configs/*.yaml
 !portfolio_app/precomputed/**/*.yaml

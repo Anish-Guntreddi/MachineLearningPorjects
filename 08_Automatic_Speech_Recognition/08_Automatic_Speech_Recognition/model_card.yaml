@@ -1,0 +1,36 @@
+project_id: 08
+title: Automatic Speech Recognition
+short_description: Speech-to-text with DeepSpeech2 and CTC loss on LibriSpeech
+category: Audio
+input_type: audio_waveform
+output_type: transcribed_text
+default_model: deepspeech2
+models_available:
+- deepspeech2
+- wav2vec2
+- whisper
+dataset:
+  name: LibriSpeech
+  subset: train-clean-100
+  num_classes: 29
+  train_size: 28539
+  val_size: 2703
+  test_size: 2620
+hyperparameter_optimization:
+  library: optuna
+  n_trials: 5
+  n_epochs_per_trial: 3
+  search_space:
+  - lr
+  - hidden_dim
+  - num_layers
+  - dropout
+  objective: minimize WER
+tags:
+- speech-recognition
+- asr
+- ctc
+- librispeech
+- deepspeech2
+- optuna
+demo_type: precomputed

@@ -1,0 +1,41 @@
+project_id: '02'
+title: Object Detection
+short_description: Faster R-CNN with ResNet-50 FPN backbone on PASCAL VOC
+category: Computer Vision
+input_type: image
+output_type: bounding_boxes
+default_model: faster_rcnn
+models_available:
+- faster_rcnn
+- retinanet
+- yolov5
+dataset:
+  name: PASCAL VOC 2012
+  num_classes: 21
+  classes:
+  - background
+  - aeroplane
+  - bicycle
+  - bird
+  - boat
+  - bottle
+  - bus
+  - car
+  - cat
+  - chair
+  - cow
+  - diningtable
+  - dog
+  - horse
+  - motorbike
+  - person
+  - pottedplant
+  - sheep
+  - sofa
+  - train
+  - tvmonitor
+tags:
+- object-detection
+- faster-rcnn
+- pascal-voc
+demo_type: interactive

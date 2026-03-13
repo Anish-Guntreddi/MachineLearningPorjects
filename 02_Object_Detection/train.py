@@ -167,27 +167,35 @@ class DetectionTrainer:
             'loss_rpn_box_reg': loss_rpn_box_reg.avg
         }
     
-    def validate(self) -> Dict:
-        """Validate the model"""
+    def validate(self, max_batches: int = 0) -> Dict:
+        """Validate the model. Set max_batches > 0 to limit validation for speed."""
         self.model.eval()
-        
+
         all_predictions = []
         all_targets = []
-        
+
         with torch.no_grad():
-            for images, targets in tqdm(self.val_loader, desc="Validating"):
+            total = max_batches if max_batches > 0 else len(self.val_loader)
+            for batch_idx, (images, targets) in enumerate(tqdm(self.val_loader, desc="Validating", total=total)):
+                if max_batches > 0 and batch_idx >= max_batches:
+                    break
                 images = [img.to(self.device) for img in images]
                 targets = [{k: v.to(self.device) for k, v in t.items()} for t in targets]
-                
+
                 # Get predictions
                 predictions = self.model(images)
-                
-                all_predictions.extend(predictions)
-                all_targets.extend(targets)
-        
+
+                # Move to CPU immediately to save GPU memory
+                all_predictions.extend(
+                    {k: v.detach().cpu() for k, v in p.items()} for p in predictions
+                )
+                all_targets.extend(
+                    {k: v.detach().cpu() for k, v in t.items()} for t in targets
+                )
+
         # Calculate metrics
         metrics = evaluate_detection(all_predictions, all_targets)
-        
+
         return metrics
     
     def train(self):

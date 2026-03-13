@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.optim.lr_scheduler import OneCycleLR, ReduceLROnPlateau
 from torch.cuda.amp import GradScaler, autocast
+import torchaudio.transforms as T_audio
 import numpy as np
 from tqdm import tqdm
 import argparse
@@ -14,8 +15,32 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
-import wandb
-from jiwer import wer, cer
+try:
+    import wandb
+    _WANDB_AVAILABLE = True
+except ImportError:
+    _WANDB_AVAILABLE = False
+
+try:
+    from jiwer import wer as _jiwer_wer, cer as _jiwer_cer
+    def wer(ref, hyp): return _jiwer_wer(ref, hyp)
+    def cer(ref, hyp): return _jiwer_cer(ref, hyp)
+except ImportError:
+    def wer(ref, hyp):
+        """Fallback WER: word-level edit distance / reference length."""
+        r, h = ref.split(), hyp.split()
+        if not r:
+            return 0.0
+        d = [[0] * (len(h) + 1) for _ in range(len(r) + 1)]
+        for i in range(len(r) + 1): d[i][0] = i
+        for j in range(len(h) + 1): d[0][j] = j
+        for i in range(1, len(r) + 1):
+            for j in range(1, len(h) + 1):
+                d[i][j] = d[i-1][j-1] if r[i-1] == h[j-1] else 1 + min(d[i-1][j], d[i][j-1], d[i-1][j-1])
+        return d[len(r)][len(h)] / len(r)
+    def cer(ref, hyp):
+        """Fallback CER: character-level WER."""
+        return wer(' '.join(ref), ' '.join(hyp))
 
 from data_loader import ASRDataModule, create_char_tokenizer, decode_predictions
 from models import get_model
@@ -35,7 +60,9 @@ class ASRTrainer:
             dataset_name=config['dataset'],
             data_path=config['data_path'],
             batch_size=config['batch_size'],
-            num_workers=config.get('num_workers', 4)
+            num_workers=config.get('num_workers', 4),
+            librispeech_train_split=config.get('librispeech_train_split', 'train-clean-100'),
+            librispeech_val_split=config.get('librispeech_val_split', 'dev-clean'),
         )
         self.data_module.setup()
         
@@ -71,6 +98,9 @@ class ASRTrainer:
         self.use_amp = config.get('use_amp', True) and torch.cuda.is_available()
         self.scaler = GradScaler() if self.use_amp else None
         
+        # Feature extractor (waveform → spectrogram)
+        self._init_feature_extractor()
+
         # Early stopping
         self.early_stopping = EarlyStopping(
             patience=config.get('early_stopping_patience', 10),
@@ -93,6 +123,34 @@ class ASRTrainer:
                 name=f"{config['model_name']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             )
     
+    def _init_feature_extractor(self):
+        """Initialize waveform → spectrogram transform based on feature_type config."""
+        sr = 16000
+        feature_type = self.config.get('feature_type', 'melspec')
+        if feature_type == 'melspec':
+            self.feature_extractor = T_audio.MelSpectrogram(
+                sample_rate=sr, n_fft=400, hop_length=160, n_mels=80
+            ).to(self.device)
+        elif feature_type == 'mfcc':
+            self.feature_extractor = T_audio.MFCC(
+                sample_rate=sr, n_mfcc=40,
+                melkwargs={'n_fft': 400, 'hop_length': 160, 'n_mels': 80}
+            ).to(self.device)
+        elif feature_type == 'spectrogram':
+            self.feature_extractor = T_audio.Spectrogram(n_fft=320, hop_length=160).to(self.device)
+        else:
+            self.feature_extractor = None  # 'raw' — pass waveform unsqueezed
+
+    def _extract_features(self, waveforms: torch.Tensor) -> torch.Tensor:
+        """Convert raw waveforms (B, T) → spectrogram features (B, T_frames, n_feats)."""
+        if self.feature_extractor is None:
+            # raw: (B, T) → (B, T, 1)
+            return waveforms.unsqueeze(-1)
+        # transform expects (B, T) or (T,); output is (B, n_feats, T_frames)
+        feats = self.feature_extractor(waveforms)      # (B, n_feats, T_frames)
+        feats = feats.transpose(1, 2)                  # (B, T_frames, n_feats)
+        return feats
+
     def _create_tokenizer(self):
         """Create character tokenizer from training data"""
         # Collect all transcripts
@@ -196,6 +254,7 @@ class ASRTrainer:
         
         for batch_idx, batch in enumerate(pbar):
             waveforms = batch['waveforms'].to(self.device)
+            waveforms = self._extract_features(waveforms)  # (B, T_frames, n_feats)
             transcripts = batch['transcripts']
             
             # Convert transcripts to tokens
@@ -334,6 +393,7 @@ class ASRTrainer:
         with torch.no_grad():
             for batch in tqdm(val_loader, desc="Validation"):
                 waveforms = batch['waveforms'].to(self.device)
+                waveforms = self._extract_features(waveforms)  # (B, T_frames, n_feats)
                 transcripts = batch['transcripts']
                 
                 # Convert transcripts to tokens

@@ -193,7 +193,17 @@ class VOCDetection(Dataset):
         
         boxes = np.array(boxes, dtype=np.float32)
         labels = np.array(labels, dtype=np.int64)
-        
+
+        # Clip boxes to image bounds and drop degenerate boxes
+        h, w = img.shape[:2]
+        boxes[:, 0] = np.clip(boxes[:, 0], 0, w)
+        boxes[:, 1] = np.clip(boxes[:, 1], 0, h)
+        boxes[:, 2] = np.clip(boxes[:, 2], 0, w)
+        boxes[:, 3] = np.clip(boxes[:, 3], 0, h)
+        valid = (boxes[:, 2] - boxes[:, 0] > 1) & (boxes[:, 3] - boxes[:, 1] > 1)
+        boxes = boxes[valid]
+        labels = labels[valid]
+
         # Apply transforms
         if self.transforms:
             transformed = self.transforms(
@@ -202,11 +212,25 @@ class VOCDetection(Dataset):
                 labels=labels
             )
             img = transformed['image']
-            boxes = np.array(transformed['bboxes'], dtype=np.float32)
+            boxes = np.array(transformed['bboxes'], dtype=np.float32).reshape(-1, 4)
             labels = np.array(transformed['labels'], dtype=np.int64)
-        
-        # Convert to tensors
-        img = torch.from_numpy(img).permute(2, 0, 1).float() / 255.0
+
+            # Drop boxes that are still degenerate after transforms
+            if len(boxes) > 0:
+                valid = (boxes[:, 2] - boxes[:, 0] > 1) & (boxes[:, 3] - boxes[:, 1] > 1)
+                boxes = boxes[valid]
+                labels = labels[valid]
+
+            # Ensure at least one dummy box so Faster R-CNN doesn't crash on empty targets
+            if len(boxes) == 0:
+                img_h = img.shape[-2] if isinstance(img, torch.Tensor) else img.shape[0]
+                img_w = img.shape[-1] if isinstance(img, torch.Tensor) else img.shape[1]
+                boxes = np.array([[0, 0, 1, 1]], dtype=np.float32)
+                labels = np.array([0], dtype=np.int64)
+
+        # Convert to tensors (ToTensorV2 may have already done this)
+        if not isinstance(img, torch.Tensor):
+            img = torch.from_numpy(img).permute(2, 0, 1).float() / 255.0
         
         target = {
             'boxes': torch.as_tensor(boxes, dtype=torch.float32),
@@ -222,7 +246,7 @@ def get_detection_transforms(train: bool = True, img_size: int = 640):
     
     if train:
         transform = A.Compose([
-            A.RandomResizedCrop(img_size, img_size, scale=(0.5, 1.0)),
+            A.RandomResizedCrop(size=(img_size, img_size), scale=(0.5, 1.0)),
             A.HorizontalFlip(p=0.5),
             A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
             A.OneOf([
@@ -232,13 +256,15 @@ def get_detection_transforms(train: bool = True, img_size: int = 640):
             ], p=0.3),
             A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
             ToTensorV2()
-        ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=['labels']))
+        ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=['labels'],
+                                    min_area=1, min_visibility=0.1))
     else:
         transform = A.Compose([
-            A.Resize(img_size, img_size),
+            A.Resize(height=img_size, width=img_size),
             A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
             ToTensorV2()
-        ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=['labels']))
+        ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=['labels'],
+                                    min_area=1, min_visibility=0.1))
     
     return transform
 

@@ -14,7 +14,11 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
-import wandb
+try:
+    import wandb
+    _WANDB_AVAILABLE = True
+except ImportError:
+    _WANDB_AVAILABLE = False
 from sklearn.metrics import classification_report, confusion_matrix
 
 from data_loader import EmotionDataModule, collate_fn
@@ -92,19 +96,44 @@ class EmotionTrainer:
             )
     
     def _get_input_dim(self) -> int:
-        """Get input dimension based on feature type"""
+        """Get input dimension based on feature type and model.
+
+        CNN2D receives features as [B, groups, freq, time] — input_dim = number of groups.
+        CNN1D/CRNN receive features as [B, groups*freq, time] — input_dim = flattened channels.
+        """
         feature_type = self.config['feature_type']
-        
+        model_name = self.config.get('model_name', '').lower()
+
         if feature_type == 'raw':
             return 1
         elif feature_type == 'mfcc':
-            return 120  # 40 MFCCs + 40 deltas + 40 delta-deltas
+            if model_name == 'cnn2d':
+                return 3   # CNN2D sees [B, 3, 40, T] — 3 input channels
+            return 120     # CNN1D/CRNN see [B, 120, T]
         elif feature_type == 'melspec':
-            return 128  # 128 mel bands
+            if model_name == 'cnn2d':
+                return 1   # CNN2D sees [B, 1, 128, T]
+            return 128
         elif feature_type == 'combined':
-            return 220  # Combined features
+            if model_name == 'cnn2d':
+                return 4   # CNN2D: 4 groups
+            return 220
         else:
-            return 40  # Default
+            return 40
+
+    def _preprocess_features(self, features: torch.Tensor) -> torch.Tensor:
+        """Reshape features to match each model's expected input layout.
+
+        MFCC features from data_loader: [B, 3, 40, T]
+          - CNN2D: use as-is  [B, 3,  40, T]
+          - CNN1D/CRNN: flatten → [B, 120, T]
+        """
+        model_name = self.config.get('model_name', '').lower()
+        if features.dim() == 4 and model_name != 'cnn2d':
+            # [B, groups, freq, time] → [B, groups*freq, time]
+            B, G, F, T = features.shape
+            features = features.view(B, G * F, T)
+        return features
     
     def _get_optimizer(self):
         """Get optimizer"""
@@ -167,9 +196,9 @@ class EmotionTrainer:
         pbar = tqdm(train_loader, desc=f"Epoch {epoch}/{self.config['epochs']}")
         
         for batch_idx, batch in enumerate(pbar):
-            features = batch['features'].to(self.device)
+            features = self._preprocess_features(batch['features'].to(self.device))
             labels = batch['labels'].to(self.device)
-            
+
             # Forward pass
             if self.use_amp:
                 with autocast():
@@ -244,9 +273,9 @@ class EmotionTrainer:
         
         with torch.no_grad():
             for batch in tqdm(val_loader, desc="Validation"):
-                features = batch['features'].to(self.device)
+                features = self._preprocess_features(batch['features'].to(self.device))
                 labels = batch['labels'].to(self.device)
-                
+
                 outputs = self.model(features)
                 loss = self.criterion(outputs, labels)
                 
@@ -370,7 +399,7 @@ class EmotionTrainer:
         
         with torch.no_grad():
             for batch in tqdm(test_loader, desc="Testing"):
-                features = batch['features'].to(self.device)
+                features = self._preprocess_features(batch['features'].to(self.device))
                 labels = batch['labels'].to(self.device)
                 
                 outputs = self.model(features)

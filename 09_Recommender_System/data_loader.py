@@ -241,7 +241,9 @@ class MovieLensDataset:
         if not data_dir.exists():
             url = 'https://files.grouplens.org/datasets/movielens/ml-100k.zip'
             zip_path = self.data_path / 'ml-100k.zip'
-            
+
+            self.data_path.mkdir(parents=True, exist_ok=True)
+
             # Download
             response = requests.get(url)
             with open(zip_path, 'wb') as f:

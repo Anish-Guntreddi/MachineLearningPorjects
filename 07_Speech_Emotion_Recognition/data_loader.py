@@ -243,9 +243,60 @@ class RAVDESSDataset(EmotionDataset):
         self.encoded_labels = self.label_encoder.fit_transform(self.labels)
 
 
+class SyntheticEmotionDataset(Dataset):
+    """Synthetic in-memory dataset used when real audio data is not available.
+
+    Generates Gaussian noise features with per-class biases so the model
+    can learn a non-trivial decision boundary even without real audio.
+    Returned dict uses key 'label' (singular) to match EmotionDataset.
+    """
+    EMOTIONS = ['neutral', 'calm', 'happy', 'sad', 'angry', 'fearful', 'disgust', 'surprised']
+
+    def __init__(self, num_samples_per_class: int = 100, feature_type: str = 'mfcc', seed: int = 42):
+        self.feature_type = feature_type
+        self.num_classes = len(self.EMOTIONS)
+
+        # Feature shape matches what EmotionDataset._extract_features() would return
+        # sr=16000, duration=3.0, hop_length=512 → T = ceil(48000/512) = 94
+        if feature_type == 'mfcc':
+            feature_shape = (3, 40, 94)   # mfcc + delta + delta2, each [1,40,T]
+        elif feature_type == 'melspec':
+            feature_shape = (1, 128, 94)
+        elif feature_type == 'raw':
+            feature_shape = (1, 48000)
+        else:
+            feature_shape = (3, 40, 94)
+
+        rng = np.random.default_rng(seed)
+        self.features = []
+        self.encoded_labels = []
+
+        for cls_idx in range(self.num_classes):
+            # Each class gets a distinct mean pattern so training is non-trivial
+            class_mean = (rng.standard_normal(feature_shape) * 0.5).astype(np.float32)
+            for _ in range(num_samples_per_class):
+                sample = class_mean + (rng.standard_normal(feature_shape) * 0.3).astype(np.float32)
+                self.features.append(torch.from_numpy(sample))
+                self.encoded_labels.append(cls_idx)
+
+        from sklearn.preprocessing import LabelEncoder
+        self.label_encoder = LabelEncoder()
+        self.label_encoder.fit(self.EMOTIONS)
+
+    def __len__(self):
+        return len(self.features)
+
+    def __getitem__(self, idx):
+        return {
+            'features': self.features[idx],
+            'label': torch.tensor(self.encoded_labels[idx], dtype=torch.long),
+            'audio_path': f'synthetic_{idx}.wav',
+        }
+
+
 class EmotionDataModule:
     """Data module for emotion recognition"""
-    
+
     def __init__(
         self,
         dataset_name: str = 'ravdess',
@@ -265,78 +316,95 @@ class EmotionDataModule:
         self.train_split = train_split
         self.val_split = val_split
         self.test_split = test_split
-        
+
         self.train_dataset = None
         self.val_dataset = None
         self.test_dataset = None
-    
+
     def setup(self):
-        """Setup datasets"""
-        if self.dataset_name == 'ravdess':
-            dataset_class = RAVDESSDataset
+        """Setup datasets, falling back to synthetic data when real audio is absent."""
+        data_path = Path(self.data_path)
+        use_synthetic = not data_path.exists() or not any(data_path.iterdir())
+
+        if use_synthetic:
+            print(f"[EmotionDataModule] Data path '{self.data_path}' not found or empty.")
+            print("[EmotionDataModule] Using SyntheticEmotionDataset (RAVDESS requires manual download).")
+            full_dataset = SyntheticEmotionDataset(
+                num_samples_per_class=100,
+                feature_type=self.feature_type,
+            )
         else:
-            dataset_class = EmotionDataset
-        
-        # Load full dataset
-        full_dataset = dataset_class(
-            self.data_path,
-            feature_type=self.feature_type,
-            augment=False
-        )
-        
+            if self.dataset_name == 'ravdess':
+                dataset_class = RAVDESSDataset
+            else:
+                dataset_class = EmotionDataset
+
+            full_dataset = dataset_class(
+                self.data_path,
+                feature_type=self.feature_type,
+                augment=False
+            )
+
         # Split dataset
         total_size = len(full_dataset)
         train_size = int(self.train_split * total_size)
         val_size = int(self.val_split * total_size)
         test_size = total_size - train_size - val_size
-        
+
         train_data, val_data, test_data = torch.utils.data.random_split(
             full_dataset,
             [train_size, val_size, test_size],
             generator=torch.Generator().manual_seed(42)
         )
-        
-        # Create augmented training dataset
-        self.train_dataset = dataset_class(
-            self.data_path,
-            feature_type=self.feature_type,
-            augment=True
-        )
-        self.train_dataset.file_paths = [full_dataset.file_paths[i] for i in train_data.indices]
-        self.train_dataset.encoded_labels = [full_dataset.encoded_labels[i] for i in train_data.indices]
-        
+
+        if use_synthetic:
+            self.train_dataset = train_data
+        else:
+            # Create augmented training dataset for real data
+            dataset_class = RAVDESSDataset if self.dataset_name == 'ravdess' else EmotionDataset
+            self.train_dataset = dataset_class(
+                self.data_path,
+                feature_type=self.feature_type,
+                augment=True
+            )
+            self.train_dataset.file_paths = [full_dataset.file_paths[i] for i in train_data.indices]
+            self.train_dataset.encoded_labels = [full_dataset.encoded_labels[i] for i in train_data.indices]
+
         self.val_dataset = val_data
         self.test_dataset = test_data
-        
+
         # Store label encoder
         self.label_encoder = full_dataset.label_encoder
         self.num_classes = full_dataset.num_classes
-    
+
     def train_dataloader(self):
         return DataLoader(
             self.train_dataset,
             batch_size=self.batch_size,
             shuffle=True,
             num_workers=self.num_workers,
-            pin_memory=True
+            pin_memory=True,
+            collate_fn=collate_fn,
         )
-    
+
     def val_dataloader(self):
         return DataLoader(
             self.val_dataset,
             batch_size=self.batch_size * 2,
             shuffle=False,
             num_workers=self.num_workers,
-            pin_memory=True
+            pin_memory=True,
+            collate_fn=collate_fn,
         )
-    
+
     def test_dataloader(self):
         return DataLoader(
             self.test_dataset,
             batch_size=self.batch_size * 2,
             shuffle=False,
             num_workers=self.num_workers,
-            pin_memory=True
+            pin_memory=True,
+            collate_fn=collate_fn,
         )
 
 

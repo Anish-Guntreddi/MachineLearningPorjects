@@ -8,6 +8,15 @@ default_model: fasterrcnn_resnet50_fpn
 models_available:
 - fasterrcnn_resnet50_fpn
 - retinanet_resnet50_fpn
+technical_overview:
+  summary: "This project implements object detection on PASCAL VOC, localizing and classifying 20 object categories with bounding boxes. The pipeline uses Faster R-CNN and YOLO architectures with Feature Pyramid Networks (FPN) for multi-scale detection, enabling the model to find objects regardless of size. Bbox-aware augmentation (mosaic, random resized crops, color jitter via Albumentations) ensures training data diversity while preserving spatial annotation integrity. Mixed precision training with gradient clipping stabilizes the multi-task loss (classification + box regression)."
+  pipeline:
+    - "Data loading: PASCAL VOC XML annotations parsed into bounding box format with class labels for 20 categories"
+    - "Bbox-aware augmentation: Albumentations pipeline with mosaic, random resized crop, color jitter — all bbox-safe"
+    - "Backbone + FPN: ResNet/ResNeXt backbone extracts multi-scale features; FPN creates a feature pyramid for detecting objects at different scales"
+    - "Detection head: Region Proposal Network (RPN) generates candidate boxes; classification + regression heads refine predictions"
+    - "Training: Multi-task loss (cross-entropy for class + smooth L1 for bbox), AdamW optimizer, mixed precision, gradient clipping"
+    - "Evaluation: mAP@0.5 and mAP@0.75 using COCO-style evaluation protocol with per-class AP breakdown"
 dataset:
   name: PASCAL VOC
   source: torchvision
@@ -19,3 +28,36 @@ tags:
 - faster-rcnn
 - voc
 demo_type: interactive
+
+architecture:
+  type: "CNN with Region Proposal Network"
+  key_components:
+  - "Faster R-CNN with ResNet-50 + FPN backbone"
+  - "Region Proposal Network (RPN)"
+  - "RetinaNet with focal loss"
+  - "Feature Pyramid Network (FPN)"
+  - "YOLOv5-style CSPDarknet backbone"
+  pretrained: true
+  framework: "PyTorch"
+
+training:
+  loss_function: "Multi-task (classifier + box regression + objectness + RPN box reg)"
+  optimizer: "SGD with momentum (0.9)"
+  scheduler: "StepLR / CosineAnnealingLR"
+  augmentation:
+  - "RandomResizedCrop"
+  - "HorizontalFlip"
+  - "ColorJitter"
+  - "MotionBlur / MedianBlur / GaussianBlur"
+  - "Mosaic augmentation (YOLO-style)"
+  mixed_precision: false
+  gradient_clipping: true
+
+methodology:
+  summary: "Pretrained Faster R-CNN and RetinaNet models fine-tuned on PASCAL VOC with Albumentations-based augmentation pipeline and differential learning rates for backbone vs head."
+  key_techniques:
+  - "Optuna HPO"
+  - "Early stopping"
+  - "Differential learning rates (bias vs weights)"
+  - "Albumentations augmentation pipeline"
+  - "mAP evaluation at IoU 0.5 and 0.5:0.95"

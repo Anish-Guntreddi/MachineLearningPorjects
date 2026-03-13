@@ -9,6 +9,17 @@ models_available:
 - lstm
 - gru
 - transformer
+technical_overview:
+  summary: "This project forecasts electricity transformer temperatures using the ETTh1 dataset — hourly multivariate time series with trends, seasonality, and non-stationary patterns. The pipeline engineers temporal features (lag values, rolling statistics, cyclical time encodings) before feeding into deep sequence models (LSTM, GRU, Transformer, TCN, N-BEATS). StandardScaler normalization prevents feature magnitude bias, while sliding windows create overlapping input-output pairs for supervised training. Outlier detection via IQR/Z-score capping preserves temporal structure while limiting extreme values."
+  pipeline:
+    - "Data cleaning: Gap detection, missing value interpolation (linear + forward/backward fill), validation checks"
+    - "Outlier handling: IQR and Z-score based detection with capping (not removal) to preserve temporal continuity"
+    - "Feature engineering: Lag features (1, 2, 3, 7, 14, 30 steps), rolling window statistics (mean, std, min, max)"
+    - "Cyclical encoding: Hour, day-of-week, month encoded as sin/cos pairs to capture periodic patterns"
+    - "Normalization: StandardScaler fitted on training data, applied to all splits (no data leakage)"
+    - "Sliding windows: Configurable lookback (96 steps) and prediction horizon (24 steps) with stride-1 overlap"
+    - "Model training: LSTM/GRU/Transformer/TCN trained with MSE loss, OneCycleLR scheduler, mixed precision"
+    - "Evaluation: MAE, RMSE, and directional accuracy (did we predict the right trend direction?)"
 dataset:
   name: ETTh1
   source: custom
@@ -20,3 +31,33 @@ tags:
 - forecasting
 - lstm
 demo_type: interactive
+
+architecture:
+  type: "RNN / Transformer"
+  key_components:
+  - "LSTM with autoregressive multi-step decoding"
+  - "GRU with autoregressive decoding"
+  - "Transformer encoder for temporal patterns"
+  - "StandardScaler normalization pipeline"
+  - "Sliding window with configurable stride"
+  pretrained: false
+  framework: "PyTorch"
+
+training:
+  loss_function: "MSELoss / L1Loss / HuberLoss"
+  optimizer: "Adam"
+  scheduler: "CosineAnnealingLR / ReduceLROnPlateau"
+  augmentation:
+  - "None"
+  mixed_precision: true
+  gradient_clipping: true
+
+methodology:
+  summary: "Autoregressive LSTM/GRU and Transformer models for multi-step time series forecasting on ETTh1, with StandardScaler preprocessing and sliding window data preparation."
+  key_techniques:
+  - "Optuna HPO"
+  - "Early stopping"
+  - "Autoregressive multi-step prediction"
+  - "StandardScaler normalization"
+  - "Sliding window with configurable sequence/prediction lengths"
+  - "MAE and MAPE evaluation"

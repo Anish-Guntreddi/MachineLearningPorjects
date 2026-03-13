@@ -527,6 +527,8 @@ def get_model(
     if model_name == 'mf' or model_name == 'matrix_factorization':
         return MatrixFactorization(num_users, num_items, **kwargs)
     elif model_name == 'ncf':
+        if 'embedding_dim' in kwargs:
+            kwargs['mf_dim'] = kwargs.pop('embedding_dim')
         return NeuralCollaborativeFiltering(num_users, num_items, **kwargs)
     elif model_name == 'deepfm':
         return DeepFM(num_users, num_items, **kwargs)

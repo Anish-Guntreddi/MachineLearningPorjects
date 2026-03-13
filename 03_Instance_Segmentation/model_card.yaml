@@ -8,6 +8,16 @@ default_model: mask_rcnn
 models_available:
 - mask_rcnn
 - simple
+technical_overview:
+  summary: "This project performs instance segmentation on COCO, detecting individual objects and generating pixel-precise masks for each instance across 80 categories. Mask R-CNN extends Faster R-CNN by adding a parallel mask prediction branch that outputs a binary mask for each detected object. Advanced augmentation (elastic transforms, grid distortion, ShiftScaleRotate, noise injection) via Albumentations ensures robustness to geometric and photometric variation. The three-headed architecture (classification + bbox regression + mask prediction) is trained end-to-end with mixed precision."
+  pipeline:
+    - "Data loading: COCO annotations with polygon masks converted to binary masks via RLE decoding"
+    - "Augmentation: Albumentations pipeline with ShiftScaleRotate, ElasticTransform, GridDistortion, GaussNoise — all mask-aware"
+    - "Backbone + FPN: ResNet backbone with Feature Pyramid Network for multi-scale feature extraction"
+    - "Detection branch: RPN proposes regions; classification and bbox regression heads filter and refine detections"
+    - "Mask branch: Per-instance 28x28 binary mask prediction from ROI-aligned features"
+    - "Training: Combined loss (CE + smooth L1 + binary CE for masks), mixed precision, gradient clipping"
+    - "Evaluation: Instance-level mAP for both bbox and mask quality, per-category AP analysis"
 dataset:
   name: COCO subset
   source: torchvision
@@ -19,3 +29,36 @@ tags:
 - mask-rcnn
 - coco
 demo_type: precomputed
+
+architecture:
+  type: "CNN with Mask Head"
+  key_components:
+  - "Mask R-CNN with ResNet-50 + FPN backbone"
+  - "RoI Align for mask prediction"
+  - "Feature Pyramid Network (FPN)"
+  - "Separate box and mask prediction heads"
+  - "MaskRCNNPredictor with deconv upsampling"
+  pretrained: true
+  framework: "PyTorch"
+
+training:
+  loss_function: "Multi-task (classifier + box reg + mask + objectness + RPN box reg)"
+  optimizer: "SGD with momentum (0.9)"
+  scheduler: "StepLR / CosineAnnealingLR"
+  augmentation:
+  - "RandomHorizontalFlip"
+  - "RandomResizedCrop"
+  - "ShiftScaleRotate"
+  - "GaussNoise / ISONoise"
+  - "ElasticTransform / GridDistortion"
+  mixed_precision: false
+  gradient_clipping: true
+
+methodology:
+  summary: "Pretrained Mask R-CNN fine-tuned for pixel-level instance segmentation on COCO, with multi-task losses for bounding box, classification, and mask prediction."
+  key_techniques:
+  - "Optuna HPO"
+  - "Early stopping"
+  - "Multi-task learning (box + mask + classification)"
+  - "Transfer learning from COCO pretrained weights"
+  - "Mask mAP evaluation"

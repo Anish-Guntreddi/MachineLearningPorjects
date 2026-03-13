@@ -11,6 +11,16 @@ models_available:
 - attention_fusion
 - transformer_fusion
 - cross_modal_attention
+technical_overview:
+  summary: "This project fuses image and text modalities for joint classification, exploring how combining complementary information streams improves prediction over single-modality approaches. A CNN encoder extracts visual features from 224x224 RGB images while an embedding encoder processes tokenized text descriptions. Three fusion strategies are compared: early fusion (concatenate raw features before a shared classifier), late fusion (independent classifiers whose predictions are combined), and attention fusion (cross-modal attention learns which modality to weight for each sample). This architecture handles the modality alignment problem where visual and textual features exist in different representation spaces."
+  pipeline:
+    - "Image preprocessing: Resize to 224x224, normalize with ImageNet statistics, augment with random flips/crops"
+    - "Text preprocessing: Tokenize with vocabulary mapping (max 128 tokens), pad/truncate to fixed length"
+    - "Image encoder: 3-layer CNN (32→64→128 channels) with BatchNorm and ReLU, AdaptiveAvgPool → 512-dim features"
+    - "Text encoder: Embedding layer (30K vocab, 128-dim) with mean pooling → FC layer → 512-dim features"
+    - "Fusion strategies: Early (concat + shared MLP), Late (separate MLPs + score fusion), Attention (cross-modal attention weights)"
+    - "Training: Cross-entropy loss, AdamW optimizer, CosineAnnealingLR, mixed precision with gradient clipping"
+    - "Evaluation: Classification accuracy, per-modality ablation study comparing single vs. fused performance"
 dataset:
   name: Custom Multimodal
   source: custom
@@ -22,3 +32,34 @@ tags:
 - fusion
 - attention
 demo_type: precomputed
+
+architecture:
+  type: "Multimodal Fusion (CNN + Embedding + Attention)"
+  key_components:
+  - "CNN image encoder with adaptive pooling"
+  - "Embedding-based text encoder with mean pooling"
+  - "Cross-modal attention fusion mechanism"
+  - "Early, late, and attention fusion strategies"
+  - "Modality-specific projection layers"
+  pretrained: false
+  framework: "PyTorch"
+
+training:
+  loss_function: "CrossEntropyLoss"
+  optimizer: "Adam"
+  scheduler: "CosineAnnealingLR / StepLR / ReduceLROnPlateau"
+  augmentation:
+  - "Image resize and normalize (ImageNet stats)"
+  - "Text tokenization (BERT tokenizer)"
+  mixed_precision: false
+  gradient_clipping: false
+
+methodology:
+  summary: "Multimodal classification combining vision, audio, and text modalities via early fusion, late fusion, and cross-modal attention mechanisms on synthetic multimodal data."
+  key_techniques:
+  - "Optuna HPO"
+  - "Early stopping"
+  - "Cross-modal attention"
+  - "Multiple fusion strategies (early, late, attention)"
+  - "Modality-specific encoders"
+  - "Confusion matrix and accuracy evaluation"

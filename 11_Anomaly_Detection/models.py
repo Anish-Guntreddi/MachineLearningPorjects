@@ -477,7 +477,10 @@ def get_model(
     if model_name == 'autoencoder' or model_name == 'ae':
         return AutoEncoder(input_dim=input_dim, **kwargs)
     elif model_name == 'vae':
-        return VariationalAutoEncoder(input_dim=input_dim, **kwargs)
+        kw = dict(kwargs)
+        if 'encoding_dim' in kw:
+            kw['latent_dim'] = kw.pop('encoding_dim')
+        return VariationalAutoEncoder(input_dim=input_dim, **kw)
     elif model_name == 'lstm_ae':
         return LSTMAutoEncoder(input_dim=input_dim, **kwargs)
     elif model_name == 'isolation_forest':

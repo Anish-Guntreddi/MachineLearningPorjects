@@ -1,0 +1,17 @@
+project_id: '03'
+title: Instance Segmentation
+short_description: Mask R-CNN for per-instance segmentation on synthetic COCO-format
+  data
+category: Computer Vision
+input_type: image
+output_type: instance_masks
+default_model: mask_rcnn
+models_available:
+- mask_rcnn
+dataset:
+  name: Synthetic COCO-format
+  num_classes: 5
+tags:
+- instance-segmentation
+- mask-rcnn
+- coco
